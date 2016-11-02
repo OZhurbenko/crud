@@ -21,6 +21,7 @@
         <configuration>
           <warSourceDirectory>WebContent</warSourceDirectory>
           <finalName>crud</finalName>
+		  <warName>crud</warName>
         </configuration>
       </plugin>
     </plugins>
