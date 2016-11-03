@@ -18,7 +18,6 @@
     <servlet-name>ESIT CRUD</servlet-name>
     <url-pattern>/*</url-pattern>
  </servlet-mapping>
-
  <resource-ref>
     <description>DB Connection</description>
     <res-ref-name>jdbc/esit</res-ref-name>
