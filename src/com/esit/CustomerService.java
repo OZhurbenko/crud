@@ -21,7 +21,7 @@ public class CustomerService {
       @Produces("application/json")
       public Response getAllCustomers() throws JSONException, NamingException {
         repository = new Repository();
-        String result = repository.getAllCustomers();
+        String result = repository.getAllCustomers() + "";
         return Response.status(200).entity(result).build();
       }
       
@@ -31,7 +31,7 @@ public class CustomerService {
       @Produces("application/json")
       public Response getCustomerById(@PathParam("id") int id) throws JSONException, NamingException {
         repository = new Repository();
-        String result = repository.getCustomerById(id);
+        String result = repository.getCustomerById(id) + "";
         return Response.status(200).entity(result).build();
       }
 
