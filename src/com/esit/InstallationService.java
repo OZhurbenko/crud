@@ -13,5 +13,26 @@ import org.json.JSONException;
 
 @Path("/InstallationService")
 public class InstallationService {
-
+	Repository repository;
+	
+	// Get all installations
+    @Path("getAllInstallations")
+    @GET
+    @Produces("application/json")
+    public Response getAllInstallations() throws JSONException, NamingException {
+      repository = new Repository();
+      String result = repository.getAllInstallations();
+      return Response.status(200).entity(result).build();
+    }
+    
+    // Get installation by Id
+    @Path("getInstallationById/{id}")
+    @GET
+    @Produces("application/json")
+    public Response getInstallationById(@PathParam("id") int id) throws JSONException, NamingException {
+      repository = new Repository();
+      String result = repository.getInstallationById(id);
+      return Response.status(200).entity(result).build();
+    }
+	
 }
