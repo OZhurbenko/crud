@@ -21,7 +21,7 @@ public class EmployeeService {
       @Produces("application/json")
       public Response getAllEmployees() throws JSONException, NamingException {
         repository = new Repository();
-        String result = repository.getAllEmployees();
+        String result = repository.getAllEmployees() + "";
         return Response.status(200).entity(result).build();
       }
       
@@ -31,7 +31,7 @@ public class EmployeeService {
       @Produces("application/json")
       public Response getEmployeeById(@PathParam("id") int id) throws JSONException, NamingException {
         repository = new Repository();
-        String result = repository.getEmployeeById(id);
+        String result = repository.getEmployeeById(id) + "";
         return Response.status(200).entity(result).build();
       }
 

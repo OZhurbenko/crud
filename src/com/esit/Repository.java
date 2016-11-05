@@ -11,10 +11,10 @@ import org.json.JSONObject;
 
 public class Repository {
 	ConnectionManager conn;
-    
+
 	// Get all employees
-	public String getAllEmployees() throws NamingException {
-		String str = "";
+	public JSONObject getAllEmployees() throws NamingException {
+		JSONObject jsonObject = new JSONObject();
 		try {
 			//create a query string
 	        String _query = "SELECT employeeId, "
@@ -25,14 +25,13 @@ public class Repository {
 	        		+ "hireDate, "
 	        		+ "isActive "
 	        		+ "FROM Employee";
-	        
+
 	        //create a new Query object
 	        conn = new ConnectionManager();
-	        
+
 	        //execute the query statement and get the ResultSet
 	        ResultSet resultSet = conn.executeQuery(_query);
-	        
-	        
+
 	        //creating an object to keep a collection of JSONs
 	        Collection<JSONObject> employees = new ArrayList<JSONObject>();
 
@@ -48,26 +47,22 @@ public class Repository {
 	          tempJson.put("role", resultSet.getString("role"));
 	          employees.add(tempJson);
             }
-	        
+
 	        //creating a final JSON object
-	        JSONObject jsonObject = new JSONObject();
 	        jsonObject.put("employees", employees);
-	        
-	        str = "@Produces(\"application/json\") Output: \n\n" + jsonObject;
-	        
-	        
+
 	      } catch (SQLException e) {
 	    	  e.printStackTrace();
 	      } finally {
 	    	  //close the connection to the database
 	    	  conn.closeConnection();
 	      }
-		return str;
+		return jsonObject;
 	}
-	
+
 	// Get employee by Id
-	public String getEmployeeById(int id) throws NamingException {
-		String str = "";
+	public JSONObject getEmployeeById(int id) throws NamingException {
+		JSONObject jsonObject = new JSONObject();
 		try {
 			//create a query string
 	        String _query = "SELECT employeeId, "
@@ -79,13 +74,13 @@ public class Repository {
 	        		+ "isActive "
 	        		+ "FROM Employee "
 	        		+ "WHERE employeeId = " + id;
-	        
+
 	        //create a new Query object
 	        conn = new ConnectionManager();
-	        
+
 	        //execute the query statement and get the ResultSet
 	        ResultSet resultSet = conn.executeQuery(_query);
-	        
+
 	        //creating a temporary JSON object and put there a data from the database
 	        JSONObject employee = new JSONObject();
 
@@ -98,25 +93,21 @@ public class Repository {
 	        	employee.put("isActive", resultSet.getBoolean("isActive"));
 	        	employee.put("role", resultSet.getString("role"));
             }
-	        
+
 	        //creating a final JSON object
-	        JSONObject jsonObject = new JSONObject();
 	        jsonObject.put("employee", employee);
-	        
-	        str = "@Produces(\"application/json\") Output: \n\n" + jsonObject;
-	        
-	        
+
 	      } catch (SQLException e) {
 	    	  e.printStackTrace();
 	      } finally {
 	    	  //close the connection to the database
 	    	  conn.closeConnection();
 	      }
-		return str;
+		return jsonObject;
 	}
-	
-	public String getAllSales() throws NamingException {
-		String str = "";
+
+	public JSONObject getAllSales() throws NamingException {
+		JSONObject jsonObject = new JSONObject();
 		try {
 			//create a query string
 	        String _query = "SELECT Sale.saleId, " 
@@ -134,8 +125,7 @@ public class Repository {
 	        
 	        //execute the query statement and get the ResultSet
 	        ResultSet resultSet = conn.executeQuery(_query);
-	        
-	        
+
 	        //creating an object to keep a collection of JSONs
 	        Collection<JSONObject> sales = new ArrayList<JSONObject>();
 
@@ -149,26 +139,22 @@ public class Repository {
 	          tempJson.put("address", resultSet.getString("street"));
 	          sales.add(tempJson);
             }
-	        
+
 	        //creating a final JSON object
-	        JSONObject jsonObject = new JSONObject();
 	        jsonObject.put("sales", sales);
-	        
-	        str = "@Produces(\"application/json\") Output: \n\n" + jsonObject;
-	        
-	        
+
 	      } catch (Exception e) {
 	    	  e.printStackTrace();
 	      } finally {
 	    	  //close the connection to the database
 	    	  conn.closeConnection();
 	      }
-		return str;
+		return jsonObject;
 	}
-	
+
 	// Get sale by Id
-	public String getSaleById(int id) throws NamingException {
-		String str = "";
+	public JSONObject getSaleById(int id) throws NamingException {
+		JSONObject jsonObject = new JSONObject();
 		try {
 			//create a query string
 	        String _query = "SELECT Sale.saleId, " 
@@ -200,23 +186,20 @@ public class Repository {
             }
 	        
 	        //creating a final JSON object
-	        JSONObject jsonObject = new JSONObject();
 	        jsonObject.put("sale", sale);
-	        
-	        str = "@Produces(\"application/json\") Output: \n\n" + jsonObject;
-	        
+
 	      } catch (Exception e) {
 	    	  e.printStackTrace();
 	      } finally {
 	    	  //close the connection to the database
 	    	  conn.closeConnection();
 	      }
-		return str;
+		return jsonObject;
 	}
 	
 	// Get all customers
-	public String getAllCustomers() throws NamingException {
-		String str = "";
+	public JSONObject getAllCustomers() throws NamingException {
+		JSONObject jsonObject = new JSONObject();
 		try {
 			//create a query string
 	        String _query = "SELECT customerId, " 
@@ -249,24 +232,20 @@ public class Repository {
             }
 	        
 	        //creating a final JSON object
-	        JSONObject jsonObject = new JSONObject();
 	        jsonObject.put("customers", customers);
-	        
-	        str = "@Produces(\"application/json\") Output: \n\n" + jsonObject;
-	        
-	        
+
 	      } catch (Exception e) {
 	    	  e.printStackTrace();
 	      } finally {
 	    	  //close the connection to the database
 	    	  conn.closeConnection();
 	      }
-		return str;
+		return jsonObject;
 	}
-	
+
 	// Get customer by Id
-	public String getCustomerById(int id) throws NamingException {
-		String str = "";
+	public JSONObject getCustomerById(int id) throws NamingException {
+		JSONObject jsonObject = new JSONObject();
 		try {
 			//create a query string
 	        String _query = "SELECT customerId, " 
@@ -276,13 +255,13 @@ public class Repository {
 	        		+ "enbridgeNum "
 	        		+ "FROM Customer "
 	        		+ "WHERE customerId = " + id;
-	        
+
 	        //create a new Query object
 	        conn = new ConnectionManager();
-	        
+
 	        //execute the query statement and get the ResultSet
 	        ResultSet resultSet = conn.executeQuery(_query);
-	        
+
 	        //creating a temporary JSON object and put there a data from the database
 	        JSONObject customer = new JSONObject();
 
@@ -294,25 +273,21 @@ public class Repository {
 	          customer.put("phoneNumber", resultSet.getString("cellPhone"));
 	          customer.put("enbridgeNumber", resultSet.getString("enbridgeNum"));
             }
-	        
+
 	        //creating a final JSON object
-	        JSONObject jsonObject = new JSONObject();
 	        jsonObject.put("customer", customer);
-	        
-	        str = "@Produces(\"application/json\") Output: \n\n" + jsonObject;
-	        
-	        
+
 	      } catch (Exception e) {
 	    	  e.printStackTrace();
 	      } finally {
 	    	  //close the connection to the database
 	    	  conn.closeConnection();
 	      }
-		return str;
+		return jsonObject;
 	}
 	
-	public String getAllInstallations() throws NamingException {
-		String str = "";
+	public JSONObject getAllInstallations() throws NamingException {
+        JSONObject jsonObject = new JSONObject();
 		try {
 			//create a query string
 			String _query = "SELECT Installation.instalationId, " 
@@ -351,24 +326,20 @@ public class Repository {
             }
 	        
 	        //creating a final JSON object
-	        JSONObject jsonObject = new JSONObject();
 	        jsonObject.put("installations", installations);
-	        
-	        str = "@Produces(\"application/json\") Output: \n\n" + jsonObject;
-	        
-	        
+
 	      } catch (Exception e) {
 	    	  e.printStackTrace();
 	      } finally {
 	    	  //close the connection to the database
 	    	  conn.closeConnection();
 	      }
-		return str;
+		return jsonObject;
 	}
 	
 	// Get sale by Id
-	public String getInstallationById(int id) throws NamingException {
-		String str = "";
+	public JSONObject getInstallationById(int id) throws NamingException {
+        JSONObject jsonObject = new JSONObject();
 		try {
 			//create a query string
 	        String _query = "SELECT Installation.instalationId, " 
@@ -404,18 +375,15 @@ public class Repository {
             }
 	        
 	        //creating a final JSON object
-	        JSONObject jsonObject = new JSONObject();
 	        jsonObject.put("installation", installation);
-	        
-	        str = "@Produces(\"application/json\") Output: \n\n" + jsonObject;
-	        
+
 	      } catch (Exception e) {
 	    	  e.printStackTrace();
 	      } finally {
 	    	  //close the connection to the database
 	    	  conn.closeConnection();
 	      }
-		return str;
+		return jsonObject;
 	}
 
 //	// Get create new employee

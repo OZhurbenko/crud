@@ -21,7 +21,7 @@ public class SaleService {
       @Produces("application/json")
       public Response getAllSales() throws JSONException, NamingException {
         repository = new Repository();
-        String result = repository.getAllSales();
+        String result = repository.getAllSales() + "";
         return Response.status(200).entity(result).build();
       }
       
@@ -31,7 +31,7 @@ public class SaleService {
       @Produces("application/json")
       public Response getSaleById(@PathParam("id") int id) throws JSONException, NamingException {
         repository = new Repository();
-        String result = repository.getSaleById(id);
+        String result = repository.getSaleById(id) + "";
         return Response.status(200).entity(result).build();
       }
 
