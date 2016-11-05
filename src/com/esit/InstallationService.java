@@ -11,7 +11,7 @@ import javax.ws.rs.core.Response;
 import org.json.JSONException;
 //import org.json.JSONObject;
 
-@Path("/EmployeeService")
+@Path("/InstallationService")
 public class InstallationService {
 
 }
