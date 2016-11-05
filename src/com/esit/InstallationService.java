@@ -12,6 +12,6 @@ import org.json.JSONException;
 //import org.json.JSONObject;
 
 @Path("/EmployeeService")
-public class InstallationServicde {
+public class InstallationService {
 
 }
