@@ -310,6 +310,113 @@ public class Repository {
 	      }
 		return str;
 	}
+	
+	public String getAllInstallations() throws NamingException {
+		String str = "";
+		try {
+			//create a query string
+			String _query = "SELECT Installation.instalationId, " 
+	        		+ "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+	        		+ "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
+	        		+ "Program.programName, "
+	        		+ "Address.street "
+	        		+ "FROM Installation " 
+	        		+ "JOIN Customer ON Installation.customer = Customer.customerId "
+	        		+ "JOIN Sale ON Installation.sale = Sale.saleId "
+	        		+ "JOIN Employee ON Installation.installer = Employee.employeeId "
+	        		+ "JOIN Program ON Sale.program = Program.programId "
+	        		+ "JOIN Property ON Installation.customer = Property.customer "
+	        		+ "JOIN Address ON Property.address = Address.addressId";
+	        
+	        //create a new Query object
+	        conn = new ConnectionManager();
+	        
+	        //execute the query statement and get the ResultSet
+	        ResultSet resultSet = conn.executeQuery(_query);
+	        
+	        
+	        //creating an object to keep a collection of JSONs
+	        Collection<JSONObject> installations = new ArrayList<JSONObject>();
+
+	        // Iterating through the Results and filling the jsonObject
+	        while (resultSet.next()) {
+	          //creating a temporary JSON object and put there a data from the database
+	          JSONObject tempJson = new JSONObject();
+	          tempJson.put("installationNumber", resultSet.getString("instalationId"));
+	          tempJson.put("customerName", resultSet.getString("customerName"));
+	          tempJson.put("installerName", resultSet.getString("installerName"));
+	          tempJson.put("product", resultSet.getString("programName"));
+	          tempJson.put("address", resultSet.getString("street"));
+	          installations.add(tempJson);
+            }
+	        
+	        //creating a final JSON object
+	        JSONObject jsonObject = new JSONObject();
+	        jsonObject.put("installations", installations);
+	        
+	        str = "@Produces(\"application/json\") Output: \n\n" + jsonObject;
+	        
+	        
+	      } catch (Exception e) {
+	    	  e.printStackTrace();
+	      } finally {
+	    	  //close the connection to the database
+	    	  conn.closeConnection();
+	      }
+		return str;
+	}
+	
+	// Get sale by Id
+	public String getInstallationById(int id) throws NamingException {
+		String str = "";
+		try {
+			//create a query string
+	        String _query = "SELECT Installation.instalationId, " 
+	        		+ "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+	        		+ "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
+	        		+ "Program.programName, "
+	        		+ "Address.street "
+	        		+ "FROM Installation " 
+	        		+ "JOIN Customer ON Installation.customer = Customer.customerId "
+	        		+ "JOIN Sale ON Installation.sale = Sale.saleId "
+	        		+ "JOIN Employee ON Installation.installer = Employee.employeeId "
+	        		+ "JOIN Program ON Sale.program = Program.programId "
+	        		+ "JOIN Property ON Installation.customer = Property.customer "
+	        		+ "JOIN Address ON Property.address = Address.addressId "
+	        		+ "WHERE Installation.InstalationId = " + id;
+	        
+	        //create a new Query object
+	        conn = new ConnectionManager();
+	        
+	        //execute the query statement and get the ResultSet
+	        ResultSet resultSet = conn.executeQuery(_query);
+	        
+	        //creating a temporary JSON object and put there a data from the database
+	        JSONObject installation = new JSONObject();
+
+	        // If there are results fill the jsonObject
+	        if (resultSet.next()) {
+	          installation.put("installationNumber", resultSet.getString("instalationId"));
+	          installation.put("customerName", resultSet.getString("customerName"));
+	          installation.put("installerName", resultSet.getString("installerName"));
+	          installation.put("product", resultSet.getString("programName"));
+	          installation.put("address", resultSet.getString("street"));
+            }
+	        
+	        //creating a final JSON object
+	        JSONObject jsonObject = new JSONObject();
+	        jsonObject.put("installation", installation);
+	        
+	        str = "@Produces(\"application/json\") Output: \n\n" + jsonObject;
+	        
+	      } catch (Exception e) {
+	    	  e.printStackTrace();
+	      } finally {
+	    	  //close the connection to the database
+	    	  conn.closeConnection();
+	      }
+		return str;
+	}
 
 //	// Get create new employee
 //	public String addEmployee(JSONObject newEmployee) throws NamingException {
