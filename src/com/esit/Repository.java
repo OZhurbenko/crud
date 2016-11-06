@@ -39,6 +39,7 @@ public class Repository {
 	        while (resultSet.next()) {
 	          //creating a temporary JSON object and put there a data from the database
 	          JSONObject tempJson = new JSONObject();
+	          tempJson.put("employeeNumber", resultSet.getString("employeeId"));
 	          tempJson.put("name", resultSet.getString("name"));
 	          tempJson.put("email", resultSet.getString("email"));
 	          tempJson.put("cellPhone", resultSet.getString("cellPhone"));
