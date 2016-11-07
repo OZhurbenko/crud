@@ -114,7 +114,9 @@ public class Repository {
 	        String _query = "SELECT Sale.saleId, " 
 	        		+ "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
 	        		+ "Program.programName, "
-	        		+ "Address.street "
+	        		+ "Address.street, "
+	        		+ "Sale.dateSigned, "
+	        		+ "Sale.status "
 	        		+ "FROM Sale " 
 	        		+ "JOIN Customer ON Sale.customer = Customer.customerId "
 	        		+ "JOIN Program ON Sale.program = Program.programId "
@@ -138,6 +140,8 @@ public class Repository {
 	          tempJson.put("name", resultSet.getString("customerName"));
 	          tempJson.put("product", resultSet.getString("programName"));
 	          tempJson.put("address", resultSet.getString("street"));
+	          tempJson.put("date", resultSet.getString("dateSigned"));
+	          tempJson.put("status", resultSet.getString("status"));
 	          sales.add(tempJson);
             }
 
@@ -203,12 +207,14 @@ public class Repository {
 		JSONObject jsonObject = new JSONObject();
 		try {
 			//create a query string
-	        String _query = "SELECT customerId, " 
-	        		+ "CONCAT(firstName, ' ', lastName) AS name, "
-	        		+ "email, "
-	        		+ "cellPhone, "
-	        		+ "enbridgeNum "
-	        		+ "FROM Customer";
+	        String _query = "SELECT Customer.customerId, " 
+	        		+ "CONCAT(Customer.firstName, ' ', Customer.lastName) AS name, "
+	        		+ "Customer.email, "
+	        		+ "Customer.cellPhone, "
+	        		+ "Customer.enbridgeNum, "
+	        		+ "Sale.dateSigned AS date "
+	        		+ "FROM Customer "
+	        		+ "JOIN Sale ON Customer.customerId = Sale.customer";
 	        
 	        //create a new Query object
 	        conn = new ConnectionManager();
@@ -229,6 +235,7 @@ public class Repository {
 	          tempJson.put("email", resultSet.getString("email"));
 	          tempJson.put("phoneNumber", resultSet.getString("cellPhone"));
 	          tempJson.put("enbridgeNumber", resultSet.getString("enbridgeNum"));
+	          tempJson.put("date", resultSet.getString("date"));
 	          customers.add(tempJson);
             }
 	        
@@ -291,18 +298,20 @@ public class Repository {
         JSONObject jsonObject = new JSONObject();
 		try {
 			//create a query string
-			String _query = "SELECT Installation.instalationId, " 
+			String _query = "SELECT Installation.installationId, " 
 	        		+ "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
 	        		+ "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
 	        		+ "Program.programName, "
-	        		+ "Address.street "
+	        		+ "Address.street, "
+	        		+ "DATE(Installation.installationDateTime) AS installationDate, "
+	        		+ "Installation.status "
 	        		+ "FROM Installation " 
-	        		+ "JOIN Customer ON Installation.customer = Customer.customerId "
 	        		+ "JOIN Sale ON Installation.sale = Sale.saleId "
 	        		+ "JOIN Employee ON Installation.installer = Employee.employeeId "
 	        		+ "JOIN Program ON Sale.program = Program.programId "
-	        		+ "JOIN Property ON Installation.customer = Property.customer "
-	        		+ "JOIN Address ON Property.address = Address.addressId";
+	        		+ "JOIN Property ON Sale.customer = Property.customer "
+	        		+ "JOIN Address ON Property.address = Address.addressId "
+	        		+ "JOIN Customer ON Sale.customer = Customer.customerId";
 	        
 	        //create a new Query object
 	        conn = new ConnectionManager();
@@ -318,11 +327,13 @@ public class Repository {
 	        while (resultSet.next()) {
 	          //creating a temporary JSON object and put there a data from the database
 	          JSONObject tempJson = new JSONObject();
-	          tempJson.put("installationNumber", resultSet.getString("instalationId"));
+	          tempJson.put("installationNumber", resultSet.getString("installationId"));
 	          tempJson.put("customerName", resultSet.getString("customerName"));
 	          tempJson.put("installerName", resultSet.getString("installerName"));
 	          tempJson.put("product", resultSet.getString("programName"));
 	          tempJson.put("address", resultSet.getString("street"));
+	          tempJson.put("installationDate", resultSet.getString("installationDate"));
+	          tempJson.put("status", resultSet.getString("status"));
 	          installations.add(tempJson);
             }
 	        
@@ -343,19 +354,21 @@ public class Repository {
         JSONObject jsonObject = new JSONObject();
 		try {
 			//create a query string
-	        String _query = "SELECT Installation.instalationId, " 
+	        String _query = "SELECT Installation.installationId, " 
 	        		+ "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
 	        		+ "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
 	        		+ "Program.programName, "
-	        		+ "Address.street "
+	        		+ "Address.street, "
+	        		+ "Installation.installationDateTime, "
+	        		+ "Installation.status "
 	        		+ "FROM Installation " 
-	        		+ "JOIN Customer ON Installation.customer = Customer.customerId "
 	        		+ "JOIN Sale ON Installation.sale = Sale.saleId "
 	        		+ "JOIN Employee ON Installation.installer = Employee.employeeId "
 	        		+ "JOIN Program ON Sale.program = Program.programId "
-	        		+ "JOIN Property ON Installation.customer = Property.customer "
+	        		+ "JOIN Property ON Sale.customer = Property.customer "
 	        		+ "JOIN Address ON Property.address = Address.addressId "
-	        		+ "WHERE Installation.InstalationId = " + id;
+	        		+ "JOIN Customer ON Sale.customer = Customer.customerId "
+	        		+ "WHERE Installation.installationId = " + id;
 	        
 	        //create a new Query object
 	        conn = new ConnectionManager();
@@ -368,11 +381,13 @@ public class Repository {
 
 	        // If there are results fill the jsonObject
 	        if (resultSet.next()) {
-	          installation.put("installationNumber", resultSet.getString("instalationId"));
+	          installation.put("installationNumber", resultSet.getString("installationId"));
 	          installation.put("customerName", resultSet.getString("customerName"));
 	          installation.put("installerName", resultSet.getString("installerName"));
 	          installation.put("product", resultSet.getString("programName"));
 	          installation.put("address", resultSet.getString("street"));
+	          installation.put("installationDateTime", resultSet.getString("installationDateTime"));
+	          installation.put("status", resultSet.getString("status"));
             }
 	        
 	        //creating a final JSON object
