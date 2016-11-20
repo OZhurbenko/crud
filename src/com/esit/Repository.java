@@ -232,8 +232,93 @@ public class Repository {
 	      }
 		return jsonObject;
 	}
-	
-	// Get all customers
+
+    public int createNewSale(String fname, String lname, String address, String unitNum, String city,
+            String province, String postalCode, String enbridge, String email, String homePhone, String cellPhone,
+            String programType, String installationDate, String installationTime, String notes, String dateSigned,
+            String saleNumber, String salesRepId, String applicationNumber) {
+        int result = 0;
+        try {
+            int customerID = 0;
+            int addressID = 0;
+
+            //MISSING FIELDS
+            String businessPhone = "416-981-5050";
+
+            //getting a connection to the Database
+            conn = new ConnectionManager();
+
+            //create new Customer query
+            String newCustomerQuery = "INSERT INTO Customer ("
+                    + "firstName, lastName, email, homePhone, cellPhone, businessPhone, enbridgeNum) "
+                    + "VALUES ('" + fname + "', '" + lname + "', '" + email + "', '" + homePhone + "', '"
+                    + cellPhone + "', '" + businessPhone + "', '" + enbridge + "')";
+
+            //execute create new Customer query and get the confirmation
+            result = conn.executeUpdate(newCustomerQuery);
+
+            //TODO validate result
+
+            //getting the id of the new Customer object
+            String getCustomerIdQuery = "SELECT customerId "
+                    + "FROM Customer "
+                    + "WHERE email = '" + email + "'";
+            ResultSet resultSet = conn.executeQuery(getCustomerIdQuery);
+            if(resultSet.next()) {
+                customerID = Integer.parseInt(resultSet.getString("customerId"));
+            }
+
+            //create new Address query
+            String newAddressQuery = "INSERT INTO Address (street, unit, city, province, postalCode) "
+                    + "VALUES ('" + address + "', '" + unitNum + "', '" + city + "', '" + province + "', '" + postalCode + "')";
+            //execute create new Address query and get the confirmation
+            result = conn.executeUpdate(newAddressQuery);
+            //TODO validate result
+
+            //getting the id of the new Address object
+            String getAddressIdQuery = "SELECT addressId "
+                    + "FROM Address "
+                    + "WHERE street = '" + address + "'"
+                    + " AND unit = '" + unitNum + "'"
+                    + " AND city = '" + city + "'"
+                    + " AND province = '" + province + "'"
+                    + " AND postalCode = '" + postalCode + "'";
+            resultSet = conn.executeQuery(getAddressIdQuery);
+            if(resultSet.next()) {
+                addressID = Integer.parseInt(resultSet.getString("addressId"));
+            }
+
+            //create new Property object
+            String newPropertyQuery = "INSERT INTO Property (address, customer, sqFootage, bathrooms, residents, hasPool) "
+                    + "VALUES (" + addressID + ", " + customerID + ", 123, NULL, NULL, NULL)";
+
+            //execute create new Property query here and get the result
+            result = conn.executeUpdate(newPropertyQuery);
+
+            //TODO validate salesRepId and program before creating a new Sale object
+            //create new sale object
+            String newSaleQuery = "INSERT INTO Sale ("
+                    + "customer, salesRepId, program, "
+                    + "rentalAgreement, PADForm, dateSigned, "
+                    + "installationDateTime, notes, status) "
+                    + "VALUES(" + customerID + ", " + salesRepId + ", " + programType
+                    + ", NULL, NULL, " + "'2016-09-20', "
+                    + "'2016-09-22 08:00:00', '" + notes + "', " + "'In progress')";
+
+            //execute new sale query
+            result = conn.executeUpdate(newSaleQuery);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //close the connection to the database
+            conn.closeConnection();
+        }
+
+        return result;
+    }
+
+    // Get all customers
 	public JSONObject getAllCustomers() throws NamingException {
 		JSONObject jsonObject = new JSONObject();
 		try {

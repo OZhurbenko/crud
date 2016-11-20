@@ -10,41 +10,68 @@ import javax.sql.DataSource;
 
 
 public class ConnectionManager {
-    Context context = null;
-    DataSource datasource = null;
-    Connection connect = null;
-    Statement statement = null;
+    DataSource datasource;
+    Connection connect;
+    Statement statement;
     ResultSet resultSet;
+    int result;
 
-    public ResultSet executeQuery(String query) throws NamingException {
-    	try {
-	        // Get the context and create a connection
-	      	Context initCtx = new InitialContext();
-	      	Context envCtx = (Context) initCtx.lookup("java:comp/env");
-	      	datasource = (DataSource)envCtx.lookup("jdbc/esit");
-	        connect = datasource.getConnection();
+    public ConnectionManager() {
+        this.statement = null;
+        this.resultSet = null;
+        this.result = 0;
 
+        // Get the context and create a connection
+        Context initCtx;
+        Context envCtx;
+		try {
+		    initCtx = new InitialContext();
+		    envCtx = (Context) initCtx.lookup("java:comp/env");
+		    this.datasource = (DataSource)envCtx.lookup("jdbc/esit");
+		    this.connect = this.datasource.getConnection();
+		} catch (NamingException | SQLException e) {
+		    // TODO Auto-generated catch block
+		    e.printStackTrace();
+		}
+    }
+
+    public ResultSet executeQuery(String query) {
+        try {
 	        // Create the statement to be used to get the results.
-	        statement = connect.createStatement();
+            statement = connect.createStatement();
 
-	        // Execute the query and get the result set.
-	        resultSet = statement.executeQuery(query);
-	      } catch (SQLException e) {
-	    	  e.printStackTrace();
-	      } 
-		return resultSet;
+            // Execute the query and get the result set.
+            resultSet = statement.executeQuery(query);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return resultSet;
+    }
+
+    public int executeUpdate(String query) {
+        try {
+            // Create the statement to be used to get the results.
+            statement = connect.createStatement();
+
+            // Execute the query and get the result set.
+            this.result = statement.executeUpdate(query);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     public void closeConnection(){
-    	try {
-        	if(statement != null) {
-	          statement.close();
-	        }
-          	if(connect != null) {
-          	  connect.close();
-          	}
-        } catch (SQLException e) { 
-          e.printStackTrace(); 
+        try {
+            if(statement != null) {
+                statement.close();
+            }
+            if(connect != null) {
+                connect.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }
