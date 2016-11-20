@@ -386,21 +386,34 @@ public class Repository {
 		try {
 			//create a query string
 	        String _query = "SELECT Installation.installationId, " 
-	        		+ "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
-	        		+ "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
-	        		+ "Program.programName, "
-	        		+ "Address.street, "
-	        		+ "Installation.installationDateTime, "
-	        		+ "Installation.status "
-	        		+ "FROM Installation " 
-	        		+ "JOIN Sale ON Installation.sale = Sale.saleId "
-	        		+ "JOIN Employee ON Installation.installer = Employee.employeeId "
-	        		+ "JOIN Program ON Sale.program = Program.programId "
-	        		+ "JOIN Property ON Sale.customer = Property.customer "
-	        		+ "JOIN Address ON Property.address = Address.addressId "
-	        		+ "JOIN Customer ON Sale.customer = Customer.customerId "
-	        		+ "WHERE Installation.installationId = " + id;
-	        
+                + "Customer.firstName, "
+                + "Customer.lastName, "
+                + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
+                + "Employee.employeeId, "
+                + "Program.programName, "
+                + "Address.street, "
+                + "Address.unit, "
+                + "Address.city, "
+                + "Address.province, "
+                + "Address.postalCode, "
+                + "Customer.enbridgeNum, "
+                + "Customer.email, "
+                + "Customer.homePhone, "
+                + "Customer.cellPhone, "
+                + "Property.sqFootage , "
+                + "Property.bathrooms , "
+                + "Property.residents , "
+                + "Property.hasPool, "
+                + "Installation.installationDateTime "
+                + "FROM Installation "
+                + "JOIN Sale ON Installation.sale = Sale.saleId "
+                + "JOIN Employee ON Installation.installer = Employee.employeeId "
+                + "JOIN Program ON Sale.program = Program.programId "
+                + "JOIN Property ON Sale.customer = Property.customer "
+                + "JOIN Address ON Property.address = Address.addressId "
+                + "JOIN Customer ON Sale.customer = Customer.customerId "
+                + "WHERE Installation.installationId = " + id;
+
 	        //create a new Query object
 	        conn = new ConnectionManager();
 	        
@@ -413,12 +426,25 @@ public class Repository {
 	        // If there are results fill the jsonObject
 	        if (resultSet.next()) {
 	          installation.put("installationNumber", resultSet.getString("installationId"));
-	          installation.put("customerName", resultSet.getString("customerName"));
+	          installation.put("customerFirstName", resultSet.getString("firstName"));
+	          installation.put("customerLastName", resultSet.getString("lastName"));
+	          installation.put("installerId", resultSet.getString("employeeId"));
 	          installation.put("installerName", resultSet.getString("installerName"));
 	          installation.put("product", resultSet.getString("programName"));
 	          installation.put("address", resultSet.getString("street"));
+	          installation.put("unit", resultSet.getString("unit"));
+	          installation.put("city", resultSet.getString("city"));
+	          installation.put("province", resultSet.getString("province"));
+	          installation.put("postalCode", resultSet.getString("postalCode"));
+	          installation.put("enbridgeNum", resultSet.getString("enbridgeNum"));
+	          installation.put("homePhone", resultSet.getString("homePhone"));
+	          installation.put("cellPhone", resultSet.getString("cellPhone"));
+	          installation.put("email", resultSet.getString("email"));
+	          installation.put("sqFootage", resultSet.getString("sqFootage"));
+	          installation.put("bathrooms", resultSet.getString("bathrooms"));
+	          installation.put("residents", resultSet.getString("residents"));
+	          installation.put("hasPool", resultSet.getString("hasPool"));
 	          installation.put("installationDateTime", resultSet.getString("installationDateTime"));
-	          installation.put("status", resultSet.getString("status"));
             }
 	        
 	        //creating a final JSON object
