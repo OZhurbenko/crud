@@ -67,9 +67,11 @@ public class Repository {
 		try {
 			//create a query string
 	        String _query = "SELECT employeeId, "
-	        		+ "CONCAT(firstName, ' ', lastName) AS name, "
+	        		+ "firstName, "
+	        		+ "lastName, "
 	        		+ "role, "
 	        		+ "email, "
+	        		+ "homePhone, "
 	        		+ "cellPhone, "
 	        		+ "hireDate, "
 	        		+ "isActive "
@@ -87,8 +89,11 @@ public class Repository {
 
 	        // If there are results fill the jsonObject
 	        if (resultSet.next()) {
-	        	employee.put("name", resultSet.getString("name"));
+	        	employee.put("employeeId", resultSet.getString("employeeId"));
+	        	employee.put("firstName", resultSet.getString("firstName"));
+	        	employee.put("lastName", resultSet.getString("lastName"));
 	        	employee.put("email", resultSet.getString("email"));
+	        	employee.put("homePhone", resultSet.getString("homePhone"));
 	        	employee.put("cellPhone", resultSet.getString("cellPhone"));
 	        	employee.put("hireDate", resultSet.getDate("hireDate"));
 	        	employee.put("isActive", resultSet.getBoolean("isActive"));
