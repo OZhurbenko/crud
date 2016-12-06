@@ -9,6 +9,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 //import javax.ws.rs.Consumes;
 import javax.ws.rs.core.Response;
 import org.json.JSONException;
@@ -42,52 +43,28 @@ public class SaleService {
       @POST
       @Path("/createNewSale")
       @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-      public Response create(
-              @FormParam("fname") String fname,
-              @FormParam("lname") String lname,
-              @FormParam("address") String address,
-              @FormParam("unitNum") String unitNum,
-              @FormParam("city") String city,
-              @FormParam("province") String province,
-              @FormParam("postalCode") String postalCode,
-              @FormParam("enbridge") String enbridge,
-              @FormParam("email") String email,
-              @FormParam("homePhone") String homePhone,
-              @FormParam("cellPhone") String cellPhone,
-              @FormParam("programType") String programType,
-              @FormParam("installationDate") String installationDate,
-              @FormParam("installationTime") String installationTime,
-              @FormParam("notes") String notes,
-              @FormParam("dateSigned") String dateSigned,
-              @FormParam("saleNumber") String saleNumber,
-              @FormParam("salesRepId") String salesRepId,
-              @FormParam("applicationNumber") String applicationNumber) {
-
-          repository = new Repository();
-          int result = repository.createNewSale(fname, lname, address, unitNum, city, province,
-                  postalCode, enbridge, email, homePhone, cellPhone, programType, installationDate, installationTime, notes,
-                  dateSigned, saleNumber, salesRepId, applicationNumber);
+      public Response create(MultivaluedMap<String, String> formParams) {
+          SaleManager sale = new SaleManager(formParams);
+          int result = sale.create();
 
           JSONObject jsonObj = new JSONObject();
-          jsonObj.put("fname", fname);
-          jsonObj.put("lname", lname);
-          jsonObj.put("address", address);
-          jsonObj.put("unitNum", unitNum);
-          jsonObj.put("city", city);
-          jsonObj.put("province", province);
-          jsonObj.put("postalCode", postalCode);
-          jsonObj.put("enbridge", enbridge);
-          jsonObj.put("email", email);
-          jsonObj.put("homePhone", homePhone);
-          jsonObj.put("cellPhone", cellPhone);
-          jsonObj.put("programType", programType);
-          jsonObj.put("installationDate", installationDate);
-          jsonObj.put("installationTime", installationTime);
-          jsonObj.put("notes", notes);
-          jsonObj.put("dateSigned", dateSigned);
-          jsonObj.put("saleNumber", saleNumber);
-          jsonObj.put("salesRepId", salesRepId);
-          jsonObj.put("applicationNumber", applicationNumber);
+          jsonObj.put("fname", sale.getFname());
+          jsonObj.put("lname", sale.getLname());
+          jsonObj.put("address", sale.getAddress());
+          jsonObj.put("unitNum", sale.getUnitNum());
+          jsonObj.put("city", sale.getCity());
+          jsonObj.put("province", sale.getProvince());
+          jsonObj.put("postalCode", sale.getPostalCode());
+          jsonObj.put("enbridge", sale.getEnbridge());
+          jsonObj.put("email", sale.getEmail());
+          jsonObj.put("homePhone", sale.getHomePhone());
+          jsonObj.put("cellPhone", sale.getCellPhone());
+          jsonObj.put("programType", sale.getProgramType());
+          jsonObj.put("installationDate", sale.getInstallationDate());
+          jsonObj.put("installationTime", sale.getInstallationTime());
+          jsonObj.put("notes", sale.getNotes());
+          jsonObj.put("dateSigned", sale.getDateSigned());
+          jsonObj.put("salesRepId", sale.getSalesRepI());
           jsonObj.put("result", result);
 
           if(result != 0) {
