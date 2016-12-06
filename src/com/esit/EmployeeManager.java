@@ -1,0 +1,330 @@
+package com.esit;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.naming.NamingException;
+import javax.ws.rs.core.MultivaluedMap;
+
+import org.json.JSONObject;
+
+public class EmployeeManager {
+
+    private String fname;
+    private String lname;
+    private String street;
+    private String unitNum;
+    private String city;
+    private String province;
+    private String postalCode;
+    private String email;
+    private String homePhone;
+    private String cellPhone;
+    private String password;
+    private String hireDate;
+    private String isActive;
+    private String employeeType;
+
+    private ConnectionManager conn;
+
+    //default constructor, do nothing
+    public EmployeeManager() {
+
+    }
+
+    public EmployeeManager(MultivaluedMap<String, String> formParams) {
+        this.setEmployeeType(formParams.get("employeeType").get(0));
+        this.setFname(formParams.get("fname").get(0));
+        this.setLname(formParams.get("lname").get(0));
+        this.setStreet(formParams.get("street").get(0));
+        this.setUnitNum(formParams.get("unitNum").get(0));
+        this.setCity(formParams.get("city").get(0));
+        this.setProvince(formParams.get("province").get(0));
+        this.setPostalCode(formParams.get("postalCode").get(0));
+        this.setEmail(formParams.get("email").get(0));
+        this.setHomePhone(formParams.get("homePhone").get(0));
+        this.setCellPhone(formParams.get("cellPhone").get(0));
+        this.setPassword(formParams.get("password").get(0));
+        this.setHireDate(formParams.get("hireDate").get(0));
+        this.setIsActive(formParams.get("isActive").get(0));
+    }
+
+    //create a new Employee and return his id
+    public int create() {
+        int addressId = 0;
+        int employeeId = 0;
+        int result = 0;
+        try {
+
+            conn = new ConnectionManager();
+
+            //create new Address query
+            String newAddressQuery = "INSERT INTO Address (street, unit, city, province, postalCode) "
+                    + "VALUES ('" + this.getStreet() + "', '" + this.getUnitNum() + "', '" + this.getCity() 
+                    + "', '" + this.getProvince() + "', '" + this.getPostalCode() + "')";
+            //execute create new Address query and get the confirmation
+            result = conn.executeUpdate(newAddressQuery);
+            //TODO validate result
+
+            //getting the id of the new Address object
+            String getAddressIdQuery = "SELECT addressId "
+                    + "FROM Address "
+                    + "WHERE street = '" + this.getStreet() + "'"
+                    + " AND unit = '" + this.getUnitNum() + "'"
+                    + " AND city = '" + this.getCity() + "'"
+                    + " AND province = '" + this.getProvince() + "'"
+                    + " AND postalCode = '" + this.getPostalCode() + "'";
+
+            ResultSet resultSet = conn.executeQuery(getAddressIdQuery);
+            resultSet = conn.executeQuery(getAddressIdQuery);
+            if(resultSet.next()) {
+                addressId = Integer.parseInt(resultSet.getString("addressId"));
+            }
+
+            //create new sale object
+            String newEmployeeQuery = "INSERT INTO Employee ("
+                    + "firstName, lastName, email, "
+                    + "homePhone, cellPhone, hireDate, "
+                    + "isActive, password, role, addressId) "
+                    + "VALUES('" + this.getFname() + "', '" + this.getLname() + "', '" + this.getEmail()
+                    + "', '" + this.getHomePhone() + "', '" + this.getCellPhone() + "', " + "'2016-09-20'"
+                    + ", " + this.getIsActive() + ", '" + this.getPassword() + "', '" + this.getEmployeeType()
+                    + "', " + addressId + ")";
+
+          //execute create new Property query here and get the result
+          result = conn.executeUpdate(newEmployeeQuery);
+
+          //getting the id of the new Address object
+          String getEmployeeIdQuery = "SELECT employeeId "
+                  + "FROM Employee "
+                  + "WHERE email = '" + this.getEmail() + "'";
+
+          resultSet = conn.executeQuery(getEmployeeIdQuery);
+          if(resultSet.next()) {
+              employeeId = Integer.parseInt(resultSet.getString("employeeId"));
+          }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //close the connection to the database
+            conn.closeConnection();
+        }
+
+        return employeeId;
+    }
+
+    // Get all employees
+    public JSONObject getAll() throws NamingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            //create a query string
+            String _query = "SELECT employeeId, "
+                    + "CONCAT(firstName, ' ', lastName) AS name, "
+                    + "role, "
+                    + "email, "
+                    + "cellPhone, "
+                    + "hireDate, "
+                    + "isActive "
+                    + "FROM Employee";
+
+            //create a new Query object
+            conn = new ConnectionManager();
+
+            //execute the query statement and get the ResultSet
+            ResultSet resultSet = conn.executeQuery(_query);
+
+            //creating an object to keep a collection of JSONs
+            Collection<JSONObject> employees = new ArrayList<JSONObject>();
+
+            //Iterating through the Results and filling the jsonObject
+            while (resultSet.next()) {
+              //creating a temporary JSON object and put there a data from the database
+              JSONObject tempJson = new JSONObject();
+              tempJson.put("employeeNumber", resultSet.getString("employeeId"));
+              tempJson.put("name", resultSet.getString("name"));
+              tempJson.put("email", resultSet.getString("email"));
+              tempJson.put("cellPhone", resultSet.getString("cellPhone"));
+              tempJson.put("hireDate", resultSet.getDate("hireDate"));
+              tempJson.put("isActive", resultSet.getBoolean("isActive"));
+              tempJson.put("role", resultSet.getString("role"));
+              employees.add(tempJson);
+            }
+
+            //creating a final JSON object
+            jsonObject.put("employees", employees);
+
+          } catch (SQLException e) {
+              e.printStackTrace();
+          } finally {
+              //close the connection to the database
+              conn.closeConnection();
+          }
+        return jsonObject;
+    }
+
+    // Get all employees
+    public JSONObject getAllInstallers() throws NamingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            //create a query string
+            String _query = "SELECT employeeId, "
+                    + "CONCAT(firstName, ' ', lastName) AS name, "
+                    + "role, "
+                    + "email, "
+                    + "cellPhone, "
+                    + "hireDate, "
+                    + "isActive "
+                    + "FROM Employee "
+                    + "WHERE role = 'installer' "
+                    + "AND isActive = true";
+
+            //create a new Query object
+            conn = new ConnectionManager();
+
+            //execute the query statement and get the ResultSet
+            ResultSet resultSet = conn.executeQuery(_query);
+
+            //creating an object to keep a collection of JSONs
+            Collection<JSONObject> employees = new ArrayList<JSONObject>();
+
+            //Iterating through the Results and filling the jsonObject
+            while (resultSet.next()) {
+              //creating a temporary JSON object and put there a data from the database
+              JSONObject tempJson = new JSONObject();
+              tempJson.put("employeeNumber", resultSet.getString("employeeId"));
+              tempJson.put("name", resultSet.getString("name"));
+              tempJson.put("email", resultSet.getString("email"));
+              tempJson.put("cellPhone", resultSet.getString("cellPhone"));
+              tempJson.put("hireDate", resultSet.getDate("hireDate"));
+              tempJson.put("isActive", resultSet.getBoolean("isActive"));
+              tempJson.put("role", resultSet.getString("role"));
+              employees.add(tempJson);
+            }
+
+            //creating a final JSON object
+            jsonObject.put("installers", employees);
+
+          } catch (SQLException e) {
+              e.printStackTrace();
+          } finally {
+              //close the connection to the database
+              conn.closeConnection();
+          }
+        return jsonObject;
+    }
+
+    public String getFname() {
+        return fname;
+    }
+
+    public void setFname(String fname) {
+        this.fname = fname;
+    }
+
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public String getUnitNum() {
+        return unitNum;
+    }
+
+    public void setUnitNum(String unitNum) {
+        this.unitNum = unitNum;
+    }
+
+    public String getLname() {
+        return lname;
+    }
+
+    public void setLname(String lname) {
+        this.lname = lname;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getHomePhone() {
+        return homePhone;
+    }
+
+    public void setHomePhone(String homePhone) {
+        this.homePhone = homePhone;
+    }
+
+    public String getCellPhone() {
+        return cellPhone;
+    }
+
+    public void setCellPhone(String cellPhone) {
+        this.cellPhone = cellPhone;
+    }
+
+    public String getHireDate() {
+        return hireDate;
+    }
+
+    public void setHireDate(String hireDate) {
+        this.hireDate = hireDate;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(String isActive) {
+        this.isActive = isActive;
+    }
+
+    public String getEmployeeType() {
+        return employeeType;
+    }
+
+    public void setEmployeeType(String employeeType) {
+        this.employeeType = employeeType;
+    }
+}
