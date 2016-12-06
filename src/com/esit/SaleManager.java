@@ -1,8 +1,13 @@
 package com.esit;
 
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Collection;
 
+import javax.naming.NamingException;
 import javax.ws.rs.core.MultivaluedMap;
+
+import org.json.JSONObject;
 
 public class SaleManager {
 
@@ -42,6 +47,57 @@ public class SaleManager {
         this.notes = formParams.get("notes").get(0);
         this.dateSigned = formParams.get("dateSigned").get(0);
         this.salesRepId = formParams.get("salesRepId").get(0);
+    }
+
+    public JSONObject getAllCompleted() throws NamingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            //create a query string
+            String _query = "SELECT Sale.saleId, "
+                    + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                    + "Program.programName, "
+                    + "Address.street, "
+                    + "Sale.installationDateTime, "
+                    + "Sale.status "
+                    + "FROM Sale "
+                    + "JOIN Customer ON Sale.customer = Customer.customerId "
+                    + "JOIN Program ON Sale.program = Program.programId "
+                    + "JOIN Property ON Sale.customer = Property.customer "
+                    + "JOIN Address ON Property.address = Address.addressId "
+                    + "WHERE status = 'Completed'";
+
+            //create a new Query object
+            conn = new ConnectionManager();
+
+            //execute the query statement and get the ResultSet
+            ResultSet resultSet = conn.executeQuery(_query);
+
+            //creating an object to keep a collection of JSONs
+            Collection<JSONObject> sales = new ArrayList<JSONObject>();
+
+            // Iterating through the Results and filling the jsonObject
+            while (resultSet.next()) {
+              //creating a temporary JSON object and put there a data from the database
+              JSONObject tempJson = new JSONObject();
+              tempJson.put("salesNumber", resultSet.getString("saleId"));
+              tempJson.put("name", resultSet.getString("customerName"));
+              tempJson.put("product", resultSet.getString("programName"));
+              tempJson.put("address", resultSet.getString("street"));
+              tempJson.put("installationDateTime", resultSet.getString("installationDateTime"));
+              tempJson.put("status", resultSet.getString("status"));
+              sales.add(tempJson);
+            }
+
+            //creating a final JSON object
+            jsonObject.put("sales", sales);
+
+          } catch (Exception e) {
+              e.printStackTrace();
+          } finally {
+              //close the connection to the database
+              conn.closeConnection();
+          }
+        return jsonObject;
     }
 
     public int create() {

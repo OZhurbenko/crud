@@ -30,6 +30,16 @@ public class EmployeeService {
         return Response.status(200).entity(result).build();
       }
 
+      // Get all employees
+      @Path("getAllInstallers")
+      @GET
+      @Produces("application/json")
+      public Response getAllInstallers() throws JSONException, NamingException {
+        EmployeeManager employee = new EmployeeManager();
+        String result = employee.getAllInstallers() + "";
+        return Response.status(200).entity(result).build();
+      }
+
       // Get employee by id
       @Path("getEmployeeById/{id}")
       @GET
@@ -68,5 +78,4 @@ public class EmployeeService {
               return Response.status(400).build();
           }
       }
-
 }

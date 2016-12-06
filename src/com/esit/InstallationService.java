@@ -1,15 +1,20 @@
 package com.esit;
 
 import javax.naming.NamingException;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 //import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 //import javax.ws.rs.Consumes;
 import javax.ws.rs.core.Response;
 import org.json.JSONException;
 //import org.json.JSONObject;
+import org.json.JSONObject;
 
 @Path("/InstallationService")
 public class InstallationService {
@@ -34,5 +39,40 @@ public class InstallationService {
       repository = new Repository();
       String result = repository.getInstallationById(id) + "";
       return Response.status(200).entity(result).build();
+    }
+
+    //create new installation
+    @POST
+    @Path("/createNewInstallation")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response create(MultivaluedMap<String, String> formParams) {
+        InstallationManager installation = new InstallationManager(formParams);
+        int result = installation.create();
+
+        JSONObject jsonObj = new JSONObject();
+//        jsonObj.put("fname", sale.getFname());
+//        jsonObj.put("lname", sale.getLname());
+//        jsonObj.put("address", sale.getAddress());
+//        jsonObj.put("unitNum", sale.getUnitNum());
+//        jsonObj.put("city", sale.getCity());
+//        jsonObj.put("province", sale.getProvince());
+//        jsonObj.put("postalCode", sale.getPostalCode());
+//        jsonObj.put("enbridge", sale.getEnbridge());
+//        jsonObj.put("email", sale.getEmail());
+//        jsonObj.put("homePhone", sale.getHomePhone());
+//        jsonObj.put("cellPhone", sale.getCellPhone());
+//        jsonObj.put("programType", sale.getProgramType());
+//        jsonObj.put("installationDate", sale.getInstallationDate());
+//        jsonObj.put("installationTime", sale.getInstallationTime());
+//        jsonObj.put("notes", sale.getNotes());
+//        jsonObj.put("dateSigned", sale.getDateSigned());
+//        jsonObj.put("salesRepId", sale.getSalesRepI());
+//        jsonObj.put("result", result);
+
+        if(result != 0) {
+            return Response.status(200).entity(jsonObj + "").build();
+        } else {
+            return Response.status(400).build();
+        }
     }
 }

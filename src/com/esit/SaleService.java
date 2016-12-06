@@ -30,6 +30,16 @@ public class SaleService {
         return Response.status(200).entity(result).build();
       }
       
+      // Get all sales
+      @Path("getAllCompletedSales")
+      @GET
+      @Produces("application/json")
+      public Response getAllCompletedSales() throws JSONException, NamingException {
+        SaleManager sales = new SaleManager();
+        String result = sales.getAllCompleted() + "";
+        return Response.status(200).entity(result).build();
+      }
+
       // Get sale by Id
       @Path("getSaleById/{id}")
       @GET

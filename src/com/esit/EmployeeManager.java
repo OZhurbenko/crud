@@ -165,6 +165,57 @@ public class EmployeeManager {
         return jsonObject;
     }
 
+    // Get all employees
+    public JSONObject getAllInstallers() throws NamingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            //create a query string
+            String _query = "SELECT employeeId, "
+                    + "CONCAT(firstName, ' ', lastName) AS name, "
+                    + "role, "
+                    + "email, "
+                    + "cellPhone, "
+                    + "hireDate, "
+                    + "isActive "
+                    + "FROM Employee "
+                    + "WHERE role = 'installer' "
+                    + "AND isActive = true";
+
+            //create a new Query object
+            conn = new ConnectionManager();
+
+            //execute the query statement and get the ResultSet
+            ResultSet resultSet = conn.executeQuery(_query);
+
+            //creating an object to keep a collection of JSONs
+            Collection<JSONObject> employees = new ArrayList<JSONObject>();
+
+            //Iterating through the Results and filling the jsonObject
+            while (resultSet.next()) {
+              //creating a temporary JSON object and put there a data from the database
+              JSONObject tempJson = new JSONObject();
+              tempJson.put("employeeNumber", resultSet.getString("employeeId"));
+              tempJson.put("name", resultSet.getString("name"));
+              tempJson.put("email", resultSet.getString("email"));
+              tempJson.put("cellPhone", resultSet.getString("cellPhone"));
+              tempJson.put("hireDate", resultSet.getDate("hireDate"));
+              tempJson.put("isActive", resultSet.getBoolean("isActive"));
+              tempJson.put("role", resultSet.getString("role"));
+              employees.add(tempJson);
+            }
+
+            //creating a final JSON object
+            jsonObject.put("installers", employees);
+
+          } catch (SQLException e) {
+              e.printStackTrace();
+          } finally {
+              //close the connection to the database
+              conn.closeConnection();
+          }
+        return jsonObject;
+    }
+
     public String getFname() {
         return fname;
     }
