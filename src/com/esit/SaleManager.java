@@ -102,31 +102,59 @@ public class SaleManager {
 
     public int create() {
         int result = 0;
+        int customerID = 0;
+        int salesRepId = 0;
+        int programType = 0;
         try {
-            int customerID = 0;
 
             //getting a connection to the Database
             conn = new ConnectionManager();
 
+            //attempting to create a new customer
             customerID = customer.create(conn);
 
-            //Customer's create closed a connection, so we are creating a new one
-            conn = new ConnectionManager();
+            //if returned id > 0 then everything went well
+            if(customerID > 0) {
 
-            //TODO validate salesRepId and program before creating a new Sale object
+                //Customer's create closed a connection, so we are creating a new one
+                conn = new ConnectionManager();
 
-            //create new sale object
-            String newSaleQuery = "INSERT INTO Sale ("
-                    + "customer, salesRepId, program, "
-                    + "rentalAgreement, PADForm, dateSigned, "
-                    + "installationDateTime, notes, status) "
-                    + "VALUES(" + customerID + ", " + this.getSalesRepI() + ", " + this.getProgramType()
-                    + ", NULL, NULL, " + "'2016-09-20', "
-                    + "'2016-09-22 08:00:00', '" + this.getNotes() + "', " + "'In progress')";
+                //validating salesRepId
+                String getSalesRepIdQuery = "SELECT employeeId "
+                        + "FROM Employee "
+                        + "WHERE employeeId = " + this.getSalesRepI() + " "
+                        + "AND role = 'salesperson'";
 
-            //execute new sale query
-            result = conn.executeUpdate(newSaleQuery);
+                ResultSet resultSet = conn.executeQuery(getSalesRepIdQuery);
+                if(resultSet.next()) {
+                  salesRepId = Integer.parseInt(resultSet.getString("employeeId"));
+                }
 
+                //validating programType
+                String getProgramTypeQuery = "SELECT programId "
+                        + "FROM Program "
+                        + "WHERE programId = " + this.getProgramType();
+
+                resultSet = conn.executeQuery(getProgramTypeQuery);
+                if(resultSet.next()) {
+                  programType = Integer.parseInt(resultSet.getString("programId"));
+                }
+
+                //checking if we had valid salesRepId and programType before creating a new Sale
+                if(salesRepId > 0 && programType > 0) {
+                  //create new sale object
+                  String newSaleQuery = "INSERT INTO Sale ("
+                          + "customer, salesRepId, program, "
+                          + "rentalAgreement, PADForm, dateSigned, "
+                          + "installationDateTime, notes, status) "
+                          + "VALUES(" + customerID + ", " + this.getSalesRepI() + ", " + this.getProgramType()
+                          + ", NULL, NULL, " + "'2016-09-20', "
+                          + "'2016-09-22 08:00:00', '" + this.getNotes() + "', " + "'In progress')";
+
+                  //execute new sale query
+                  result = conn.executeUpdate(newSaleQuery);
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
