@@ -164,9 +164,61 @@ public class EmployeeManager {
           }
         return jsonObject;
     }
+    
+ // Get employee by id
+    public JSONObject getEmployeeById(int id) throws NamingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            //create a query string
+            String _query = "SELECT employeeId, "
+                    + "firstName, "
+                    + "lastName, "
+                    + "role, "
+                    + "email, "
+                    + "homePhone, "
+                    + "cellPhone, "
+                    + "hireDate, "
+                    + "isActive "
+                    + "FROM Employee "
+                    + "WHERE employeeId = " + id;
+
+            //create a new Query object
+            conn = new ConnectionManager();
+
+            //execute the query statement and get the ResultSet
+            ResultSet resultSet = conn.executeQuery(_query);
+
+            //creating an object to keep a collection of JSONs
+            JSONObject employee = new JSONObject();
+
+            //Iterating through the Results and filling the jsonObject
+            if (resultSet.next()) {
+                employee.put("employeeId", resultSet.getString("employeeId"));
+                employee.put("firstName", resultSet.getString("firstName"));
+                employee.put("lastName", resultSet.getString("lastName"));
+                employee.put("email", resultSet.getString("email"));
+                employee.put("homePhone", resultSet.getString("homePhone"));
+                employee.put("cellPhone", resultSet.getString("cellPhone"));
+                employee.put("hireDate", resultSet.getDate("hireDate"));
+                employee.put("isActive", resultSet.getBoolean("isActive"));
+                employee.put("role", resultSet.getString("role"));;
+            }
+
+            //creating a final JSON object
+            jsonObject.put("employee", employee);
+
+          } catch (SQLException e) {
+              e.printStackTrace();
+          } finally {
+              //close the connection to the database
+              conn.closeConnection();
+          }
+        return jsonObject;
+    }
 
     // Get all employees
-    public JSONObject getAllInstallers() throws NamingException {
+    public JSONObject getEmployeesByRole(String role) throws NamingException {
+        role = role.toLowerCase().trim();
         JSONObject jsonObject = new JSONObject();
         try {
             //create a query string
@@ -178,7 +230,7 @@ public class EmployeeManager {
                     + "hireDate, "
                     + "isActive "
                     + "FROM Employee "
-                    + "WHERE role = 'installer' "
+                    + "WHERE role = '" + role + "' "
                     + "AND isActive = true";
 
             //create a new Query object
@@ -205,7 +257,7 @@ public class EmployeeManager {
             }
 
             //creating a final JSON object
-            jsonObject.put("installers", employees);
+            jsonObject.put("employees", employees);
 
           } catch (SQLException e) {
               e.printStackTrace();

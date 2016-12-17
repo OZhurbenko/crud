@@ -1,6 +1,12 @@
 package com.esit;
 
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.naming.NamingException;
+
+import org.json.JSONObject;
 
 public class CustomerManager {
     private String fname;
@@ -113,6 +119,98 @@ public class CustomerManager {
         }
 
         return customerID;
+    }
+    
+ // Get all customers
+    public JSONObject getAllCustomers() throws NamingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            //create a query string
+            String _query = "SELECT Customer.customerId, " 
+                    + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS name, "
+                    + "Customer.email, "
+                    + "Customer.cellPhone, "
+                    + "Customer.enbridgeNum, "
+                    + "Sale.dateSigned AS date "
+                    + "FROM Customer "
+                    + "JOIN Sale ON Customer.customerId = Sale.customer";
+            
+            //create a new Query object
+            conn = new ConnectionManager();
+            
+            //execute the query statement and get the ResultSet
+            ResultSet resultSet = conn.executeQuery(_query);
+            
+            
+            //creating an object to keep a collection of JSONs
+            Collection<JSONObject> customers = new ArrayList<JSONObject>();
+
+            // Iterating through the Results and filling the jsonObject
+            while (resultSet.next()) {
+              //creating a temporary JSON object and put there a data from the database
+              JSONObject tempJson = new JSONObject();
+              tempJson.put("customerId", resultSet.getString("customerId"));
+              tempJson.put("name", resultSet.getString("name"));
+              tempJson.put("email", resultSet.getString("email"));
+              tempJson.put("phoneNumber", resultSet.getString("cellPhone"));
+              tempJson.put("enbridgeNumber", resultSet.getString("enbridgeNum"));
+              tempJson.put("date", resultSet.getString("date"));
+              customers.add(tempJson);
+            }
+            
+            //creating a final JSON object
+            jsonObject.put("customers", customers);
+
+          } catch (Exception e) {
+              e.printStackTrace();
+          } finally {
+              //close the connection to the database
+              conn.closeConnection();
+          }
+        return jsonObject;
+    }
+
+    // Get customer by Id
+    public JSONObject getCustomerById(int id) throws NamingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            //create a query string
+            String _query = "SELECT customerId, " 
+                    + "CONCAT(firstName, ' ', lastName) AS name, "
+                    + "email, "
+                    + "cellPhone, "
+                    + "enbridgeNum "
+                    + "FROM Customer "
+                    + "WHERE customerId = " + id;
+
+            //create a new Query object
+            conn = new ConnectionManager();
+
+            //execute the query statement and get the ResultSet
+            ResultSet resultSet = conn.executeQuery(_query);
+
+            //creating a temporary JSON object and put there a data from the database
+            JSONObject customer = new JSONObject();
+
+            // If there are results fill the jsonObject
+            if (resultSet.next()) {
+              customer.put("customerId", resultSet.getString("customerId"));
+              customer.put("name", resultSet.getString("name"));
+              customer.put("email", resultSet.getString("email"));
+              customer.put("phoneNumber", resultSet.getString("cellPhone"));
+              customer.put("enbridgeNumber", resultSet.getString("enbridgeNum"));
+            }
+
+            //creating a final JSON object
+            jsonObject.put("customer", customer);
+
+          } catch (Exception e) {
+              e.printStackTrace();
+          } finally {
+              //close the connection to the database
+              conn.closeConnection();
+          }
+        return jsonObject;
     }
 
     public String getFname() {
