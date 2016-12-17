@@ -13,15 +13,13 @@ import org.json.JSONException;
 
 @Path("/CustomerService")
 public class CustomerService {
-      Repository repository;
-
       // Get all customers
       @Path("getAllCustomers")
       @GET
       @Produces("application/json")
       public Response getAllCustomers() throws JSONException, NamingException {
-        repository = new Repository();
-        String result = repository.getAllCustomers() + "";
+        CustomerManager customer = new CustomerManager();
+        String result = customer.getAllCustomers() + "";
         return Response.status(200).entity(result).build();
       }
       
@@ -30,8 +28,8 @@ public class CustomerService {
       @GET
       @Produces("application/json")
       public Response getCustomerById(@PathParam("id") int id) throws JSONException, NamingException {
-        repository = new Repository();
-        String result = repository.getCustomerById(id) + "";
+        CustomerManager customer = new CustomerManager();
+        String result = customer.getCustomerById(id) + "";
         return Response.status(200).entity(result).build();
       }
 

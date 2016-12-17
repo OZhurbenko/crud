@@ -1,6 +1,13 @@
 package com.esit;
 
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.naming.NamingException;
 import javax.ws.rs.core.MultivaluedMap;
+
+import org.json.JSONObject;
 
 public class InstallationManager {
     private String saleId;
@@ -9,18 +16,19 @@ public class InstallationManager {
 
     ConnectionManager conn;
 
-    //default constructor, do nothing
+    // Default constructor, do nothing
     public InstallationManager() {
 
     }
 
-    //constructor for POST requests
+    // Constructor for POST requests
     public InstallationManager(MultivaluedMap<String, String> formParams) {
         this.setSaleId(formParams.get("saleId").get(0));
         this.setInstallerId(formParams.get("installerId").get(0));
         this.setInstallationDateTime(formParams.get("installationDateTime").get(0));
     }
 
+    // Create installation
     public int create() {
         int result = 0;
         try {
@@ -53,6 +61,143 @@ public class InstallationManager {
 
         return result;
     }
+    
+    // Get all installations
+    public JSONObject getAllInstallations() throws NamingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            //create a query string
+            String _query = "SELECT Installation.installationId, " 
+                    + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                    + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
+                    + "Program.programName, "
+                    + "Address.street, "
+                    + "DATE(Installation.installationDateTime) AS installationDate, "
+                    + "Installation.status "
+                    + "FROM Installation " 
+                    + "JOIN Sale ON Installation.sale = Sale.saleId "
+                    + "JOIN Employee ON Installation.installer = Employee.employeeId "
+                    + "JOIN Program ON Sale.program = Program.programId "
+                    + "JOIN Property ON Sale.customer = Property.customer "
+                    + "JOIN Address ON Property.address = Address.addressId "
+                    + "JOIN Customer ON Sale.customer = Customer.customerId";
+            
+            //create a new Query object
+            conn = new ConnectionManager();
+            
+            //execute the query statement and get the ResultSet
+            ResultSet resultSet = conn.executeQuery(_query);
+            
+            
+            //creating an object to keep a collection of JSONs
+            Collection<JSONObject> installations = new ArrayList<JSONObject>();
+
+            // Iterating through the Results and filling the jsonObject
+            while (resultSet.next()) {
+              //creating a temporary JSON object and put there a data from the database
+              JSONObject tempJson = new JSONObject();
+              tempJson.put("installationNumber", resultSet.getString("installationId"));
+              tempJson.put("customerName", resultSet.getString("customerName"));
+              tempJson.put("installerName", resultSet.getString("installerName"));
+              tempJson.put("product", resultSet.getString("programName"));
+              tempJson.put("address", resultSet.getString("street"));
+              tempJson.put("installationDate", resultSet.getString("installationDate"));
+              tempJson.put("status", resultSet.getString("status"));
+              installations.add(tempJson);
+            }
+            
+            //creating a final JSON object
+            jsonObject.put("installations", installations);
+
+          } catch (Exception e) {
+              e.printStackTrace();
+          } finally {
+              //close the connection to the database
+              conn.closeConnection();
+          }
+        return jsonObject;
+    }
+    
+    // Get installation by Id
+    public JSONObject getInstallationById(int id) throws NamingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            //create a query string
+            String _query = "SELECT Installation.installationId, " 
+                + "Customer.firstName, "
+                + "Customer.lastName, "
+                + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
+                + "Employee.employeeId, "
+                + "Program.programName, "
+                + "Address.street, "
+                + "Address.unit, "
+                + "Address.city, "
+                + "Address.province, "
+                + "Address.postalCode, "
+                + "Customer.enbridgeNum, "
+                + "Customer.email, "
+                + "Customer.homePhone, "
+                + "Customer.cellPhone, "
+                + "Property.sqFootage , "
+                + "Property.bathrooms , "
+                + "Property.residents , "
+                + "Property.hasPool, "
+                + "Installation.installationDateTime "
+                + "FROM Installation "
+                + "JOIN Sale ON Installation.sale = Sale.saleId "
+                + "JOIN Employee ON Installation.installer = Employee.employeeId "
+                + "JOIN Program ON Sale.program = Program.programId "
+                + "JOIN Property ON Sale.customer = Property.customer "
+                + "JOIN Address ON Property.address = Address.addressId "
+                + "JOIN Customer ON Sale.customer = Customer.customerId "
+                + "WHERE Installation.installationId = " + id;
+
+            //create a new Query object
+            conn = new ConnectionManager();
+            
+            //execute the query statement and get the ResultSet
+            ResultSet resultSet = conn.executeQuery(_query);
+            
+            //creating a temporary JSON object and put there a data from the database
+            JSONObject installation = new JSONObject();
+
+            // If there are results fill the jsonObject
+            if (resultSet.next()) {
+              installation.put("installationNumber", resultSet.getString("installationId"));
+              installation.put("customerFirstName", resultSet.getString("firstName"));
+              installation.put("customerLastName", resultSet.getString("lastName"));
+              installation.put("installerId", resultSet.getString("employeeId"));
+              installation.put("installerName", resultSet.getString("installerName"));
+              installation.put("product", resultSet.getString("programName"));
+              installation.put("address", resultSet.getString("street"));
+              installation.put("unit", resultSet.getString("unit"));
+              installation.put("city", resultSet.getString("city"));
+              installation.put("province", resultSet.getString("province"));
+              installation.put("postalCode", resultSet.getString("postalCode"));
+              installation.put("enbridgeNum", resultSet.getString("enbridgeNum"));
+              installation.put("homePhone", resultSet.getString("homePhone"));
+              installation.put("cellPhone", resultSet.getString("cellPhone"));
+              installation.put("email", resultSet.getString("email"));
+              installation.put("sqFootage", resultSet.getString("sqFootage"));
+              installation.put("bathrooms", resultSet.getString("bathrooms"));
+              installation.put("residents", resultSet.getString("residents"));
+              installation.put("hasPool", resultSet.getString("hasPool"));
+              installation.put("installationDateTime", resultSet.getString("installationDateTime"));
+            }
+            
+            //creating a final JSON object
+            jsonObject.put("installation", installation);
+
+          } catch (Exception e) {
+              e.printStackTrace();
+          } finally {
+              //close the connection to the database
+              conn.closeConnection();
+          }
+        return jsonObject;
+    }
+
+    
     public String getSaleId() {
         return saleId;
     }

@@ -18,8 +18,6 @@ import org.json.JSONObject;
 
 @Path("/EmployeeService")
 public class EmployeeService {
-      Repository repository;
-
       // Get all employees
       @Path("getAllEmployees")
       @GET
@@ -31,12 +29,12 @@ public class EmployeeService {
       }
 
       // Get all employees
-      @Path("getAllInstallers")
+      @Path("getEmployeesByRole/{role}")
       @GET
       @Produces("application/json")
-      public Response getAllInstallers() throws JSONException, NamingException {
+      public Response getEmployeesByRole(@PathParam("role") String role) throws JSONException, NamingException {
         EmployeeManager employee = new EmployeeManager();
-        String result = employee.getAllInstallers() + "";
+        String result = employee.getEmployeesByRole(role) + "";
         return Response.status(200).entity(result).build();
       }
 
@@ -45,8 +43,8 @@ public class EmployeeService {
       @GET
       @Produces("application/json")
       public Response getEmployeeById(@PathParam("id") int id) throws JSONException, NamingException {
-        repository = new Repository();
-        String result = repository.getEmployeeById(id) + "";
+        EmployeeManager employee = new EmployeeManager();
+        String result = employee.getEmployeeById(id) + "";
         return Response.status(200).entity(result).build();
       }
 

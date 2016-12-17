@@ -18,16 +18,13 @@ import org.json.JSONObject;
 
 @Path("/InstallationService")
 public class InstallationService {
-
-	Repository repository;
-
 	// Get all installations
     @Path("getAllInstallations")
     @GET
     @Produces("application/json")
     public Response getAllInstallations() throws JSONException, NamingException {
-      repository = new Repository();
-      String result = repository.getAllInstallations() + "";
+      InstallationManager installation = new InstallationManager();
+      String result = installation.getAllInstallations() + "";
       return Response.status(200).entity(result).build();
     }
 
@@ -36,12 +33,12 @@ public class InstallationService {
     @GET
     @Produces("application/json")
     public Response getInstallationById(@PathParam("id") int id) throws JSONException, NamingException {
-      repository = new Repository();
-      String result = repository.getInstallationById(id) + "";
+      InstallationManager installation = new InstallationManager();
+      String result = installation.getInstallationById(id) + "";
       return Response.status(200).entity(result).build();
     }
 
-    //create new installation
+    // Create new installation
     @POST
     @Path("/createNewInstallation")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)

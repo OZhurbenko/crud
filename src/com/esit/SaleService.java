@@ -18,15 +18,13 @@ import org.json.JSONObject;
 
 @Path("/SaleService")
 public class SaleService {
-      Repository repository;
-
       // Get all sales
       @Path("getAllSales")
       @GET
       @Produces("application/json")
       public Response getAllSales() throws JSONException, NamingException {
-        repository = new Repository();
-        String result = repository.getAllSales() + "";
+        SaleManager sales = new SaleManager();
+        String result = sales.getAllSales() + "";
         return Response.status(200).entity(result).build();
       }
       
@@ -45,8 +43,8 @@ public class SaleService {
       @GET
       @Produces("application/json")
       public Response getSaleById(@PathParam("id") int id) throws JSONException, NamingException {
-        repository = new Repository();
-        String result = repository.getSaleById(id) + "";
+        SaleManager sale = new SaleManager();
+        String result = sale.getSaleById(id) + "";
         return Response.status(200).entity(result).build();
       }
 
