@@ -164,6 +164,134 @@ public class SaleManager {
 
         return result;
     }
+    
+    // Get all sales
+    public JSONObject getAllSales() throws NamingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            //create a query string
+            String _query = "SELECT Sale.saleId, " 
+                    + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                    + "Program.programName, "
+                    + "Address.street, "
+                    + "Sale.dateSigned, "
+                    + "Sale.status "
+                    + "FROM Sale " 
+                    + "JOIN Customer ON Sale.customer = Customer.customerId "
+                    + "JOIN Program ON Sale.program = Program.programId "
+                    + "JOIN Property ON Sale.customer = Property.customer "
+                    + "JOIN Address ON Property.address = Address.addressId";
+            
+            //create a new Query object
+            conn = new ConnectionManager();
+            
+            //execute the query statement and get the ResultSet
+            ResultSet resultSet = conn.executeQuery(_query);
+
+            //creating an object to keep a collection of JSONs
+            Collection<JSONObject> sales = new ArrayList<JSONObject>();
+
+            // Iterating through the Results and filling the jsonObject
+            while (resultSet.next()) {
+              //creating a temporary JSON object and put there a data from the database
+              JSONObject tempJson = new JSONObject();
+              tempJson.put("salesNumber", resultSet.getString("saleId"));
+              tempJson.put("name", resultSet.getString("customerName"));
+              tempJson.put("product", resultSet.getString("programName"));
+              tempJson.put("address", resultSet.getString("street"));
+              tempJson.put("date", resultSet.getString("dateSigned"));
+              tempJson.put("status", resultSet.getString("status"));
+              sales.add(tempJson);
+            }
+
+            //creating a final JSON object
+            jsonObject.put("sales", sales);
+
+          } catch (Exception e) {
+              e.printStackTrace();
+          } finally {
+              //close the connection to the database
+              conn.closeConnection();
+          }
+        return jsonObject;
+    }
+
+    // Get sale by Id
+    public JSONObject getSaleById(int id) throws NamingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            //create a query string
+            String _query = "SELECT Sale.saleId, " 
+                    + "Customer.firstName, "
+                    + "Customer.lastName, "
+                    + "Program.programName, "
+                    + "Address.street, "
+                    + "Address.unit, "
+                    + "Address.city, "
+                    + "Address.province, "
+                    + "Address.postalCode, "
+                    + "Customer.enbridgeNum, "
+                    + "Customer.email, "
+                    + "Customer.homePhone, "
+                    + "Customer.cellPhone, "
+                    + "Program.programId, "
+                    + "DATE(Installation.installationDateTime) as installationDate, "
+                    + "TIME(Installation.installationDateTime) as installationTime, "
+                    + "Installation.installationDateTime, "
+                    + "Sale.notes, "
+                    + "Sale.salesRepId "
+                    + "FROM Sale " 
+                    + "JOIN Customer ON Sale.customer = Customer.customerId "
+                    + "JOIN Program ON Sale.program = Program.programId "
+                    + "JOIN Property ON Sale.customer = Property.customer "
+                    + "JOIN Address ON Property.address = Address.addressId "
+                    + "JOIN Installation ON Sale.saleId = Installation.sale "
+                    + "WHERE Sale.saleId = " + id;
+            
+            //create a new Query object
+            conn = new ConnectionManager();
+            
+            //execute the query statement and get the ResultSet
+            ResultSet resultSet = conn.executeQuery(_query);
+            
+            //creating a temporary JSON object and put there a data from the database
+            JSONObject sale = new JSONObject();
+
+            // If there are results fill the jsonObject
+            if (resultSet.next()) {
+              sale.put("salesNumber", resultSet.getString("saleId"));
+              sale.put("firstName", resultSet.getString("firstName"));
+              sale.put("lastName", resultSet.getString("lastName"));
+              sale.put("product", resultSet.getString("programName"));
+              sale.put("address", resultSet.getString("street"));
+              sale.put("unit", resultSet.getString("unit"));
+              sale.put("city", resultSet.getString("city"));
+              sale.put("province", resultSet.getString("province"));
+              sale.put("postalCode", resultSet.getString("postalCode"));
+              sale.put("enbridgeNum", resultSet.getString("enbridgeNum"));
+              sale.put("homePhone", resultSet.getString("homePhone"));
+              sale.put("cellPhone", resultSet.getString("cellPhone"));
+              sale.put("email", resultSet.getString("email"));
+              sale.put("programId", resultSet.getString("programId"));
+              sale.put("installationDate", resultSet.getString("installationDate"));
+              sale.put("installationTime", resultSet.getString("installationTime"));
+              sale.put("installationDateTime", resultSet.getString("installationDateTime"));
+              sale.put("notes", resultSet.getString("notes"));
+              sale.put("salesRepId", resultSet.getString("salesRepId"));
+            }
+            
+            //creating a final JSON object
+            jsonObject.put("sale", sale);
+
+          } catch (Exception e) {
+              e.printStackTrace();
+          } finally {
+              //close the connection to the database
+              conn.closeConnection();
+          }
+        return jsonObject;
+    }
+
 
     public String getFname() {
         return customer.getFname();
