@@ -130,10 +130,9 @@ public class CustomerManager {
                     + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS name, "
                     + "Customer.email, "
                     + "Customer.cellPhone, "
-                    + "Customer.enbridgeNum, "
-                    + "Sale.dateSigned AS date "
-                    + "FROM Customer "
-                    + "JOIN Sale ON Customer.customerId = Sale.customer";
+                    + "Customer.homePhone, "
+                    + "Customer.enbridgeNum "
+                    + "FROM Customer";
             
             //create a new Query object
             conn = new ConnectionManager();
@@ -152,9 +151,9 @@ public class CustomerManager {
               tempJson.put("customerId", resultSet.getString("customerId"));
               tempJson.put("name", resultSet.getString("name"));
               tempJson.put("email", resultSet.getString("email"));
-              tempJson.put("phoneNumber", resultSet.getString("cellPhone"));
+              tempJson.put("cellPhone", resultSet.getString("cellPhone"));
               tempJson.put("enbridgeNumber", resultSet.getString("enbridgeNum"));
-              tempJson.put("date", resultSet.getString("date"));
+              tempJson.put("homePhone", resultSet.getString("homePhone"));
               customers.add(tempJson);
             }
             
