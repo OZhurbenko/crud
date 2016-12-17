@@ -62,55 +62,70 @@ public class CustomerManager {
               conn = new ConnectionManager();
             }
 
-            //create new Customer query
-            String newCustomerQuery = "INSERT INTO Customer ("
-                    + "firstName, lastName, email, homePhone, cellPhone, enbridgeNum) "
-                    + "VALUES ('" + this.getFname() + "', '" + this.getLname() + "', '" + this.getEmail() + "', '" +
-                    this.getHomePhone() + "', '" + this.getCellPhone() + "', '" + this.getEnbridge() + "')";
-
-            //execute create new Customer query and get the confirmation
-            result = conn.executeUpdate(newCustomerQuery);
-
-            //TODO validate result
-
-            //getting the id of the new Customer object
+            //checking whether a customer with such an email already exists
             String getCustomerIdQuery = "SELECT customerId "
                     + "FROM Customer "
                     + "WHERE email = '" + this.getEmail() + "'";
             ResultSet resultSet = conn.executeQuery(getCustomerIdQuery);
             if(resultSet.next()) {
-                customerID = Integer.parseInt(resultSet.getString("customerId"));
+              customerID = Integer.parseInt(resultSet.getString("customerId"));
+              return customerID;
+
+              //Customer doesn't exist, creating a new one
+            } else {
+              //create new Customer query
+              String newCustomerQuery = "INSERT INTO Customer ("
+                      + "firstName, lastName, email, homePhone, cellPhone, enbridgeNum) "
+                      + "VALUES ('" + this.getFname() + "', '" + this.getLname() + "', '" + this.getEmail() + "', '" +
+                      this.getHomePhone() + "', '" + this.getCellPhone() + "', '" + this.getEnbridge() + "')";
+
+              //execute create new Customer query and get the confirmation
+              result = conn.executeUpdate(newCustomerQuery);
+
+              //checking whether customer was created properly
+              if(result > 0) {
+                //getting the id of the new Customer object
+                getCustomerIdQuery = "SELECT customerId "
+                        + "FROM Customer "
+                        + "WHERE email = '" + this.getEmail() + "'";
+                resultSet = conn.executeQuery(getCustomerIdQuery);
+                if(resultSet.next()) {
+                    customerID = Integer.parseInt(resultSet.getString("customerId"));
+                }
+
+                //create new Address query
+                String newAddressQuery = "INSERT INTO Address (street, unit, city, province, postalCode) "
+                        + "VALUES ('" + this.getAddress() + "', '" + this.getUnitNum() + "', '" + this.getCity() 
+                        + "', '" + this.getProvince() + "', '" + this.getPostalCode() + "')";
+                //execute create new Address query and get the confirmation
+                result = conn.executeUpdate(newAddressQuery);
+
+                //checking whether Address was created successfully
+                if(result > 0) {
+                  //getting the id of the new Address object
+                  String getAddressIdQuery = "SELECT addressId "
+                          + "FROM Address "
+                          + "WHERE street = '" + this.getAddress() + "'"
+                          + " AND unit = '" + this.getUnitNum() + "'"
+                          + " AND city = '" + this.getCity() + "'"
+                          + " AND province = '" + this.getProvince() + "'"
+                          + " AND postalCode = '" + this.getPostalCode() + "'";
+
+                  resultSet = conn.executeQuery(getAddressIdQuery);
+                  if(resultSet.next()) {
+                      addressID = Integer.parseInt(resultSet.getString("addressId"));
+                  }
+
+                  //create new Property object
+                  String newPropertyQuery = "INSERT INTO Property (address, customer, sqFootage, bathrooms, residents, hasPool) "
+                          + "VALUES (" + addressID + ", " + customerID + ", 123, NULL, NULL, NULL)";
+
+                  //execute create new Property query here and get the result
+                  result = conn.executeUpdate(newPropertyQuery);
+
+                }
+              }
             }
-
-            //create new Address query
-            String newAddressQuery = "INSERT INTO Address (street, unit, city, province, postalCode) "
-                    + "VALUES ('" + this.getAddress() + "', '" + this.getUnitNum() + "', '" + this.getCity() 
-                    + "', '" + this.getProvince() + "', '" + this.getPostalCode() + "')";
-            //execute create new Address query and get the confirmation
-            result = conn.executeUpdate(newAddressQuery);
-            //TODO validate result
-
-            //getting the id of the new Address object
-            String getAddressIdQuery = "SELECT addressId "
-                    + "FROM Address "
-                    + "WHERE street = '" + this.getAddress() + "'"
-                    + " AND unit = '" + this.getUnitNum() + "'"
-                    + " AND city = '" + this.getCity() + "'"
-                    + " AND province = '" + this.getProvince() + "'"
-                    + " AND postalCode = '" + this.getPostalCode() + "'";
-
-            resultSet = conn.executeQuery(getAddressIdQuery);
-            if(resultSet.next()) {
-                addressID = Integer.parseInt(resultSet.getString("addressId"));
-            }
-
-            //create new Property object
-            String newPropertyQuery = "INSERT INTO Property (address, customer, sqFootage, bathrooms, residents, hasPool) "
-                    + "VALUES (" + addressID + ", " + customerID + ", 123, NULL, NULL, NULL)";
-
-            //execute create new Property query here and get the result
-            result = conn.executeUpdate(newPropertyQuery);
-
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -118,7 +133,7 @@ public class CustomerManager {
             conn.closeConnection();
         }
 
-        return customerID;
+        return result;
     }
     
  // Get all customers

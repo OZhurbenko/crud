@@ -56,23 +56,6 @@ public class SaleService {
           int result = sale.create();
 
           JSONObject jsonObj = new JSONObject();
-          jsonObj.put("fname", sale.getFname());
-          jsonObj.put("lname", sale.getLname());
-          jsonObj.put("address", sale.getAddress());
-          jsonObj.put("unitNum", sale.getUnitNum());
-          jsonObj.put("city", sale.getCity());
-          jsonObj.put("province", sale.getProvince());
-          jsonObj.put("postalCode", sale.getPostalCode());
-          jsonObj.put("enbridge", sale.getEnbridge());
-          jsonObj.put("email", sale.getEmail());
-          jsonObj.put("homePhone", sale.getHomePhone());
-          jsonObj.put("cellPhone", sale.getCellPhone());
-          jsonObj.put("programType", sale.getProgramType());
-          jsonObj.put("installationDate", sale.getInstallationDate());
-          jsonObj.put("installationTime", sale.getInstallationTime());
-          jsonObj.put("notes", sale.getNotes());
-          jsonObj.put("dateSigned", sale.getDateSigned());
-          jsonObj.put("salesRepId", sale.getSalesRepI());
           jsonObj.put("result", result);
 
           if(result != 0) {
