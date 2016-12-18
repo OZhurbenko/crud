@@ -103,6 +103,7 @@ public class SaleManager {
         int customerID = 0;
         int salesRepId = 0;
         int programType = 0;
+        int saleId = 0;
         try {
 
             //getting a connection to the Database
@@ -151,6 +152,21 @@ public class SaleManager {
 
                   //execute new sale query
                   result = conn.executeUpdate(newSaleQuery);
+
+                  //checking whether we created a Sale
+                  String getSaleQuery = "SELECT saleId "
+                          + "FROM Sale "
+                          + "WHERE customer = " + customerID + " "
+                          + "AND salesRepId = " + this.getSalesRepId() + " "
+                          + "AND program = " + this.getProgramType() + " "
+                          + "AND dateSigned = '" + this.getDateSigned() + "' "
+                          + "AND installationDateTime = '" + this.getInstallationDateTime() + "' "
+                          + "AND status = 'In progress'";
+
+                  resultSet = conn.executeQuery(getSaleQuery);
+                  if(resultSet.next()) {
+                    saleId = Integer.parseInt(resultSet.getString("saleId"));
+                  }
                 }
             }
         } catch (Exception e) {
@@ -160,7 +176,7 @@ public class SaleManager {
             conn.closeConnection();
         }
 
-        return result;
+        return saleId;
     }
     
     // Get all sales
@@ -233,9 +249,7 @@ public class SaleManager {
                     + "Customer.homePhone, "
                     + "Customer.cellPhone, "
                     + "Program.programId, "
-                    + "DATE(Installation.installationDateTime) as installationDate, "
-                    + "TIME(Installation.installationDateTime) as installationTime, "
-                    + "Installation.installationDateTime, "
+                    + "Sale.installationDateTime, "
                     + "Sale.notes, "
                     + "Sale.salesRepId "
                     + "FROM Sale " 
@@ -243,7 +257,6 @@ public class SaleManager {
                     + "JOIN Program ON Sale.program = Program.programId "
                     + "JOIN Property ON Sale.customer = Property.customer "
                     + "JOIN Address ON Property.address = Address.addressId "
-                    + "JOIN Installation ON Sale.saleId = Installation.sale "
                     + "WHERE Sale.saleId = " + id;
             
             //create a new Query object
@@ -271,8 +284,6 @@ public class SaleManager {
               sale.put("cellPhone", resultSet.getString("cellPhone"));
               sale.put("email", resultSet.getString("email"));
               sale.put("programId", resultSet.getString("programId"));
-              sale.put("installationDate", resultSet.getString("installationDate"));
-              sale.put("installationTime", resultSet.getString("installationTime"));
               sale.put("installationDateTime", resultSet.getString("installationDateTime"));
               sale.put("notes", resultSet.getString("notes"));
               sale.put("salesRepId", resultSet.getString("salesRepId"));
