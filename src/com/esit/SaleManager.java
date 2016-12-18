@@ -14,8 +14,7 @@ public class SaleManager {
     CustomerManager customer;
     ConnectionManager conn;
     private String programType;
-    private String installationDate;
-    private String installationTime;
+    private String installationDateTime;
     private String notes;
     private String dateSigned;
     private String salesRepId;
@@ -42,8 +41,7 @@ public class SaleManager {
                 );
 
         this.programType = formParams.get("programType").get(0);
-        this.installationDate = formParams.get("installationDate").get(0);
-        this.installationTime = formParams.get("installationTime").get(0);
+        this.installationDateTime = formParams.get("installationDateTime").get(0);
         this.notes = formParams.get("notes").get(0);
         this.dateSigned = formParams.get("dateSigned").get(0);
         this.salesRepId = formParams.get("salesRepId").get(0);
@@ -105,6 +103,7 @@ public class SaleManager {
         int customerID = 0;
         int salesRepId = 0;
         int programType = 0;
+        int saleId = 0;
         try {
 
             //getting a connection to the Database
@@ -122,7 +121,7 @@ public class SaleManager {
                 //validating salesRepId
                 String getSalesRepIdQuery = "SELECT employeeId "
                         + "FROM Employee "
-                        + "WHERE employeeId = " + this.getSalesRepI() + " "
+                        + "WHERE employeeId = " + this.getSalesRepId() + " "
                         + "AND role = 'salesperson'";
 
                 ResultSet resultSet = conn.executeQuery(getSalesRepIdQuery);
@@ -147,12 +146,27 @@ public class SaleManager {
                           + "customer, salesRepId, program, "
                           + "rentalAgreement, PADForm, dateSigned, "
                           + "installationDateTime, notes, status) "
-                          + "VALUES(" + customerID + ", " + this.getSalesRepI() + ", " + this.getProgramType()
-                          + ", NULL, NULL, " + "'2016-09-20', "
-                          + "'2016-09-22 08:00:00', '" + this.getNotes() + "', " + "'In progress')";
+                          + "VALUES(" + customerID + ", " + this.getSalesRepId() + ", " + this.getProgramType()
+                          + ", NULL, NULL, '" + this.getDateSigned() + "', '"
+                          + this.getInstallationDateTime() + "', '" + this.getNotes() + "', " + "'In progress')";
 
                   //execute new sale query
                   result = conn.executeUpdate(newSaleQuery);
+
+                  //checking whether we created a Sale
+                  String getSaleQuery = "SELECT saleId "
+                          + "FROM Sale "
+                          + "WHERE customer = " + customerID + " "
+                          + "AND salesRepId = " + this.getSalesRepId() + " "
+                          + "AND program = " + this.getProgramType() + " "
+                          + "AND dateSigned = '" + this.getDateSigned() + "' "
+                          + "AND installationDateTime = '" + this.getInstallationDateTime() + "' "
+                          + "AND status = 'In progress'";
+
+                  resultSet = conn.executeQuery(getSaleQuery);
+                  if(resultSet.next()) {
+                    saleId = Integer.parseInt(resultSet.getString("saleId"));
+                  }
                 }
             }
         } catch (Exception e) {
@@ -162,7 +176,7 @@ public class SaleManager {
             conn.closeConnection();
         }
 
-        return result;
+        return saleId;
     }
     
     // Get all sales
@@ -235,9 +249,7 @@ public class SaleManager {
                     + "Customer.homePhone, "
                     + "Customer.cellPhone, "
                     + "Program.programId, "
-                    + "DATE(Installation.installationDateTime) as installationDate, "
-                    + "TIME(Installation.installationDateTime) as installationTime, "
-                    + "Installation.installationDateTime, "
+                    + "Sale.installationDateTime, "
                     + "Sale.notes, "
                     + "Sale.salesRepId "
                     + "FROM Sale " 
@@ -245,7 +257,6 @@ public class SaleManager {
                     + "JOIN Program ON Sale.program = Program.programId "
                     + "JOIN Property ON Sale.customer = Property.customer "
                     + "JOIN Address ON Property.address = Address.addressId "
-                    + "JOIN Installation ON Sale.saleId = Installation.sale "
                     + "WHERE Sale.saleId = " + id;
             
             //create a new Query object
@@ -273,8 +284,6 @@ public class SaleManager {
               sale.put("cellPhone", resultSet.getString("cellPhone"));
               sale.put("email", resultSet.getString("email"));
               sale.put("programId", resultSet.getString("programId"));
-              sale.put("installationDate", resultSet.getString("installationDate"));
-              sale.put("installationTime", resultSet.getString("installationTime"));
               sale.put("installationDateTime", resultSet.getString("installationDateTime"));
               sale.put("notes", resultSet.getString("notes"));
               sale.put("salesRepId", resultSet.getString("salesRepId"));
@@ -359,11 +368,11 @@ public class SaleManager {
     public void setCellPhone(String cellPhone) {
         customer.setCellPhone(cellPhone);
     }
-    public String getInstallationDate() {
-        return installationDate;
+    public String getInstallationDateTime() {
+        return installationDateTime;
     }
-    public void setInstallationDate(String installationDate) {
-        this.installationDate = installationDate;
+    public void setInstallationDateTime(String installationDateTime) {
+        this.installationDateTime = installationDateTime;
     }
     public String getProgramType() {
         return programType;
@@ -371,12 +380,7 @@ public class SaleManager {
     public void setProgramType(String programType) {
         this.programType = programType;
     }
-    public String getInstallationTime() {
-        return installationTime;
-    }
-    public void setInstallationTime(String installationTime) {
-        this.installationTime = installationTime;
-    }
+
     public String getNotes() {
         return notes;
     }
@@ -389,7 +393,7 @@ public class SaleManager {
     public void setDateSigned(String dateSigned) {
         this.dateSigned = dateSigned;
     }
-    public String getSalesRepI() {
+    public String getSalesRepId() {
         return salesRepId;
     }
     public void setSalesRepId(String salesRepId) {

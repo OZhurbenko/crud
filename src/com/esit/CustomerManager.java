@@ -133,7 +133,7 @@ public class CustomerManager {
             conn.closeConnection();
         }
 
-        return result;
+        return customerID;
     }
     
  // Get all customers

@@ -32,7 +32,7 @@ public class SaleService {
       @Path("getAllCompletedSales")
       @GET
       @Produces("application/json")
-      public Response getAllCompletedSales() throws JSONException, NamingException {
+      public Response getAllCompletedSales() throws NamingException {
         SaleManager sales = new SaleManager();
         String result = sales.getAllCompleted() + "";
         return Response.status(200).entity(result).build();
@@ -51,15 +51,17 @@ public class SaleService {
       @POST
       @Path("/createNewSale")
       @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-      public Response create(MultivaluedMap<String, String> formParams) {
+      public Response create(MultivaluedMap<String, String> formParams) throws NamingException {
           SaleManager sale = new SaleManager(formParams);
           int result = sale.create();
 
           JSONObject jsonObj = new JSONObject();
-          jsonObj.put("result", result);
+          if(result > 0) {
+              jsonObj = sale.getSaleById(result);
+          }
 
           if(result != 0) {
-              return Response.status(200).entity(jsonObj + "").build();
+              return Response.status(201).entity(jsonObj + "").build();
           } else {
               return Response.status(400).build();
           }
