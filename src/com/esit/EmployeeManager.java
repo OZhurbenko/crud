@@ -173,16 +173,22 @@ public class EmployeeManager {
         JSONObject jsonObject = new JSONObject();
         try {
             //create a query string
-            String _query = "SELECT employeeId, "
-                    + "firstName, "
-                    + "lastName, "
-                    + "role, "
-                    + "email, "
-                    + "homePhone, "
-                    + "cellPhone, "
-                    + "hireDate, "
-                    + "isActive "
+            String _query = "SELECT Employee.employeeId, "
+                    + "Employee.firstName, "
+                    + "Employee.lastName, "
+                    + "Employee.role, "
+                    + "Employee.email, "
+                    + "Employee.homePhone, "
+                    + "Employee.cellPhone, "
+                    + "Employee.hireDate, "
+                    + "Employee.isActive, "
+                    + "Address.street, "
+                    + "Address.unit, "
+                    + "Address.city, "
+                    + "Address.province, "
+                    + "Address.postalCode "
                     + "FROM Employee "
+                    + "JOIN Address ON Employee.addressId = Address.addressId "
                     + "WHERE employeeId = " + id;
 
             //create a new Query object
@@ -204,6 +210,11 @@ public class EmployeeManager {
                 employee.put("cellPhone", resultSet.getString("cellPhone"));
                 employee.put("hireDate", resultSet.getDate("hireDate"));
                 employee.put("isActive", resultSet.getBoolean("isActive"));
+                employee.put("address", resultSet.getString("street"));
+                employee.put("unit", resultSet.getString("unit"));
+                employee.put("city", resultSet.getString("city"));
+                employee.put("province", resultSet.getString("province"));
+                employee.put("postalCode", resultSet.getString("postalCode"));
                 employee.put("role", resultSet.getString("role"));;
             }
 
