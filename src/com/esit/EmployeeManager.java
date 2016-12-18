@@ -66,7 +66,6 @@ public class EmployeeManager {
                     + "', '" + this.getProvince() + "', '" + this.getPostalCode() + "')";
             //execute create new Address query and get the confirmation
             result = conn.executeUpdate(newAddressQuery);
-            //TODO validate result
 
             //getting the id of the new Address object
             String getAddressIdQuery = "SELECT addressId "
@@ -83,28 +82,32 @@ public class EmployeeManager {
                 addressId = Integer.parseInt(resultSet.getString("addressId"));
             }
 
-            //create new sale object
-            String newEmployeeQuery = "INSERT INTO Employee ("
-                    + "firstName, lastName, email, "
-                    + "homePhone, cellPhone, hireDate, "
-                    + "isActive, password, role, addressId) "
-                    + "VALUES('" + this.getFname() + "', '" + this.getLname() + "', '" + this.getEmail()
-                    + "', '" + this.getHomePhone() + "', '" + this.getCellPhone() + "', " + "'2016-09-20'"
-                    + ", " + this.getIsActive() + ", '" + this.getPassword() + "', '" + this.getEmployeeType()
-                    + "', " + addressId + ")";
+            //check if Address object was created
+            if(addressId > 0) {
+              //create new Employee object
+              String newEmployeeQuery = "INSERT INTO Employee ("
+                      + "firstName, lastName, email, "
+                      + "homePhone, cellPhone, hireDate, "
+                      + "isActive, password, role, addressId) "
+                      + "VALUES('" + this.getFname() + "', '" + this.getLname() + "', '" + this.getEmail()
+                      + "', '" + this.getHomePhone() + "', '" + this.getCellPhone() + "', '" + this.getHireDate()
+                      + "', " + this.getIsActive() + ", '" + this.getPassword() + "', '" + this.getEmployeeType()
+                      + "', " + addressId + ")";
 
-          //execute create new Property query here and get the result
-          result = conn.executeUpdate(newEmployeeQuery);
+              //execute create new Property query here and get the result
+              result = conn.executeUpdate(newEmployeeQuery);
 
-          //getting the id of the new Address object
-          String getEmployeeIdQuery = "SELECT employeeId "
-                  + "FROM Employee "
-                  + "WHERE email = '" + this.getEmail() + "'";
+              //getting the id of the new Employee object
+              String getEmployeeIdQuery = "SELECT employeeId "
+                      + "FROM Employee "
+                      + "WHERE email = '" + this.getEmail() + "'";
 
-          resultSet = conn.executeQuery(getEmployeeIdQuery);
-          if(resultSet.next()) {
-              employeeId = Integer.parseInt(resultSet.getString("employeeId"));
-          }
+              resultSet = conn.executeQuery(getEmployeeIdQuery);
+
+              if(resultSet.next()) {
+                  employeeId = Integer.parseInt(resultSet.getString("employeeId"));
+              }
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
