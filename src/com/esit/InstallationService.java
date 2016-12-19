@@ -28,6 +28,16 @@ public class InstallationService {
       return Response.status(200).entity(result).build();
     }
 
+    // Get all installations
+    @Path("getScheduledInstallations")
+    @GET
+    @Produces("application/json")
+    public Response getScheduledInstallations() throws JSONException, NamingException {
+      InstallationManager installation = new InstallationManager();
+      String result = installation.getAllScheduled() + "";
+      return Response.status(200).entity(result).build();
+    }
+
     // Get installation by Id
     @Path("getInstallationById/{id}")
     @GET

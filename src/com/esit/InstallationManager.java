@@ -117,6 +117,62 @@ public class InstallationManager {
           }
         return jsonObject;
     }
+
+    // Get all scheduled installations
+    public JSONObject getAllScheduled() throws NamingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            //create a query string
+            String _query = "SELECT Installation.installationId, "
+                    + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                    + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
+                    + "Program.programName, "
+                    + "Address.street, "
+                    + "Installation.installationDateTime, "
+                    + "Installation.status "
+                    + "FROM Installation "
+                    + "JOIN Sale ON Installation.sale = Sale.saleId "
+                    + "JOIN Employee ON Installation.installer = Employee.employeeId "
+                    + "JOIN Program ON Sale.program = Program.programId "
+                    + "JOIN Property ON Sale.customer = Property.customer "
+                    + "JOIN Address ON Property.address = Address.addressId "
+                    + "JOIN Customer ON Sale.customer = Customer.customerId "
+                    + "WHERE Installation.status = 'Completed'";
+
+            //create a new Query object
+            conn = new ConnectionManager();
+
+            //execute the query statement and get the ResultSet
+            ResultSet resultSet = conn.executeQuery(_query);
+
+            //creating an object to keep a collection of JSONs
+            Collection<JSONObject> installations = new ArrayList<JSONObject>();
+
+            // Iterating through the Results and filling the jsonObject
+            while (resultSet.next()) {
+              //creating a temporary JSON object and put there a data from the database
+              JSONObject tempJson = new JSONObject();
+              tempJson.put("installationNumber", resultSet.getString("installationId"));
+              tempJson.put("customerName", resultSet.getString("customerName"));
+              tempJson.put("installerName", resultSet.getString("installerName"));
+              tempJson.put("product", resultSet.getString("programName"));
+              tempJson.put("address", resultSet.getString("street"));
+              tempJson.put("installationDateTime", resultSet.getString("installationDateTime"));
+              tempJson.put("status", resultSet.getString("status"));
+              installations.add(tempJson);
+            }
+
+            //creating a final JSON object
+            jsonObject.put("installations", installations);
+
+          } catch (Exception e) {
+              e.printStackTrace();
+          } finally {
+              //close the connection to the database
+              conn.closeConnection();
+          }
+        return jsonObject;
+    }
     
     // Get installation by Id
     public JSONObject getInstallationById(int id) throws NamingException {
