@@ -5,6 +5,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -65,5 +66,34 @@ public class SaleService {
           } else {
               return Response.status(400).build();
           }
+      }
+      
+      @PUT
+      @Path("/setEnvelopeId/{id}")
+      @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+      public Response setEnvelopeId(@PathParam("id") int id, MultivaluedMap<String, String> formParams) throws NamingException {
+          SaleManager sale = new SaleManager();
+          int result = sale.putEnvelopeId(id, formParams);
+
+          JSONObject jsonObj = new JSONObject();
+          if(result > 0) {
+              jsonObj.put("saleId", result);
+          }
+
+          if(result != 0) {
+              return Response.status(200).entity(jsonObj + "").build();
+          } else {
+              return Response.status(400).build();
+          }
+      }
+      
+      // Get folderId by envelopeId
+      @Path("getFolderIdByEnvelopeId/{id}")
+      @GET
+      @Produces("application/json")
+      public Response getFolderIdByEnvelopeId(@PathParam("id") String id) throws JSONException, NamingException {
+        SaleManager sale = new SaleManager();
+        String result = sale.getFolderIdByEnvelopeId(id) + "";
+        return Response.status(200).entity(result).build();
       }
 }

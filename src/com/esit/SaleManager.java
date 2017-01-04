@@ -18,6 +18,8 @@ public class SaleManager {
     private String notes;
     private String dateSigned;
     private String salesRepId;
+    private String folderId;
+    private String envelopeId;
 
     //default constructor, do nothing
     public SaleManager() {
@@ -45,6 +47,7 @@ public class SaleManager {
         this.notes = formParams.get("notes").get(0);
         this.dateSigned = formParams.get("dateSigned").get(0);
         this.salesRepId = formParams.get("salesRepId").get(0);
+        this.folderId = formParams.get("folderId").get(0);
     }
 
     public JSONObject getAllCompleted() throws NamingException {
@@ -145,10 +148,11 @@ public class SaleManager {
                   String newSaleQuery = "INSERT INTO Sale ("
                           + "customer, salesRepId, program, "
                           + "rentalAgreement, PADForm, dateSigned, "
-                          + "installationDateTime, notes, status) "
+                          + "installationDateTime, notes, status, folderId) "
                           + "VALUES(" + customerID + ", " + this.getSalesRepId() + ", " + this.getProgramType()
                           + ", NULL, NULL, '" + this.getDateSigned() + "', '"
-                          + this.getInstallationDateTime() + "', '" + this.getNotes() + "', " + "'In progress')";
+                          + this.getInstallationDateTime() + "', '" + this.getNotes() + "', " + "'In progress', '"
+                          + this.getFolderId() + "')";
 
                   //execute new sale query
                   result = conn.executeUpdate(newSaleQuery);
@@ -161,7 +165,8 @@ public class SaleManager {
                           + "AND program = " + this.getProgramType() + " "
                           + "AND dateSigned = '" + this.getDateSigned() + "' "
                           + "AND installationDateTime = '" + this.getInstallationDateTime() + "' "
-                          + "AND status = 'In progress'";
+                          + "AND status = 'In progress' "
+                          + "AND folderId = '" + this.getFolderId() + "'";
 
                   resultSet = conn.executeQuery(getSaleQuery);
                   if(resultSet.next()) {
@@ -177,6 +182,47 @@ public class SaleManager {
         }
 
         return saleId;
+    }
+    
+    public int putEnvelopeId(int id, MultivaluedMap<String, String> formParams) {
+        int result = 0;
+        String envelopeId = formParams.get("envelopeId").get(0);
+        System.out.println(envelopeId);
+        try {
+
+        	//getting a connection to the Database
+            conn = new ConnectionManager();
+            
+            // Set the folderId
+            this.setEnvelopeId(envelopeId);
+            System.out.println("get: " + this.getEnvelopeId());
+            
+            //create new sale object
+            String newSaleQuery = "UPDATE Sale SET "
+                  + "envelopeId = "
+                  + "'" + this.getEnvelopeId() + "' "
+                  + "WHERE saleId = " + id;
+
+            //execute new sale query
+            result = conn.executeUpdate(newSaleQuery);
+
+            //checking whether we created a Sale
+            String getSaleQuery = "SELECT saleId, envelopeId "
+                  + "FROM Sale "
+                  + "WHERE saleId = " + id;
+
+            ResultSet resultSet = conn.executeQuery(getSaleQuery);
+            if(resultSet.next()) {
+            	result = Integer.parseInt(resultSet.getString("saleId"));
+          }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //close the connection to the database
+            conn.closeConnection();
+        }
+
+        return result;
     }
     
     // Get all sales
@@ -251,7 +297,9 @@ public class SaleManager {
                     + "Program.programId, "
                     + "Sale.installationDateTime, "
                     + "Sale.notes, "
-                    + "Sale.salesRepId "
+                    + "Sale.salesRepId, "
+                    + "Sale.folderId, "
+                    + "Sale.envelopeId "
                     + "FROM Sale " 
                     + "JOIN Customer ON Sale.customer = Customer.customerId "
                     + "JOIN Program ON Sale.program = Program.programId "
@@ -287,6 +335,48 @@ public class SaleManager {
               sale.put("installationDateTime", resultSet.getString("installationDateTime"));
               sale.put("notes", resultSet.getString("notes"));
               sale.put("salesRepId", resultSet.getString("salesRepId"));
+              sale.put("folderId", resultSet.getString("folderId"));
+              sale.put("envelopeId", resultSet.getString("envelopeId"));
+            }
+            
+            //creating a final JSON object
+            jsonObject.put("sale", sale);
+
+          } catch (Exception e) {
+              e.printStackTrace();
+          } finally {
+              //close the connection to the database
+              conn.closeConnection();
+          }
+        return jsonObject;
+    }
+    
+    // Get sale by Id
+    public JSONObject getFolderIdByEnvelopeId(String id) throws NamingException {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            //create a query string
+            String _query = "SELECT saleId, " 
+                    + "folderId "
+                    + "FROM Sale " 
+                    + "WHERE envelopeId = " + id;
+            
+            //create a new Query object
+            conn = new ConnectionManager();
+            
+            //execute the query statement and get the ResultSet
+            ResultSet resultSet = conn.executeQuery(_query);
+            
+            //creating a temporary JSON object and put there a data from the database
+            JSONObject sale = new JSONObject();
+
+            // If there are results fill the jsonObject
+            if (resultSet.next()) {
+              sale.put("salesNumber", resultSet.getString("saleId"));
+              sale.put("folderId", resultSet.getString("folderId"));
+            } else {
+              sale.put("salesNumber", "0");
+              sale.put("folderId", "0");
             }
             
             //creating a final JSON object
@@ -399,4 +489,20 @@ public class SaleManager {
     public void setSalesRepId(String salesRepId) {
         this.salesRepId = salesRepId;
     }
+
+	public String getFolderId() {
+		return folderId;
+	}
+
+	public void setFolderId(String folderId) {
+		this.folderId = folderId;
+	}
+
+	public String getEnvelopeId() {
+		return envelopeId;
+	}
+
+	public void setEnvelopeId(String envelopeId) {
+		this.envelopeId = envelopeId;
+	}
 }
