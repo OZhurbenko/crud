@@ -375,8 +375,9 @@ public class SaleManager {
               sale.put("salesNumber", resultSet.getString("saleId"));
               sale.put("folderId", resultSet.getString("folderId"));
             } else {
+              // Default to 'unsorted' folder on Box.com
               sale.put("salesNumber", "0");
-              sale.put("folderId", "0");
+              sale.put("folderId", "15932309040");
             }
             
             //creating a final JSON object
