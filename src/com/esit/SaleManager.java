@@ -359,7 +359,7 @@ public class SaleManager {
             String _query = "SELECT saleId, " 
                     + "folderId "
                     + "FROM Sale " 
-                    + "WHERE envelopeId = " + id;
+                    + "WHERE envelopeId LIKE '" + id + "'";
             
             //create a new Query object
             conn = new ConnectionManager();
