@@ -190,8 +190,10 @@ public class CustomerManager {
         try {
             //create a query string
             String _query = "SELECT customerId, " 
-                    + "CONCAT(firstName, ' ', lastName) AS name, "
+                    + "firstName, "
+                    + "lastName, "
                     + "email, "
+                    + "homePhone, "
                     + "cellPhone, "
                     + "enbridgeNum "
                     + "FROM Customer "
@@ -209,8 +211,10 @@ public class CustomerManager {
             // If there are results fill the jsonObject
             if (resultSet.next()) {
               customer.put("customerId", resultSet.getString("customerId"));
-              customer.put("name", resultSet.getString("name"));
+              customer.put("firstName", resultSet.getString("firstName"));
+              customer.put("lastName", resultSet.getString("lastName"));
               customer.put("email", resultSet.getString("email"));
+              customer.put("homePhone", resultSet.getString("homePhone"));
               customer.put("phoneNumber", resultSet.getString("cellPhone"));
               customer.put("enbridgeNumber", resultSet.getString("enbridgeNum"));
             }
