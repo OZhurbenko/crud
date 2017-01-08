@@ -5,6 +5,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -54,6 +55,25 @@ public class SaleService {
       public Response create(MultivaluedMap<String, String> formParams) throws NamingException {
           SaleManager sale = new SaleManager(formParams);
           int result = sale.create();
+
+          JSONObject jsonObj = new JSONObject();
+          if(result > 0) {
+              jsonObj = sale.getSaleById(result);
+          }
+
+          if(result != 0) {
+              return Response.status(201).entity(jsonObj + "").build();
+          } else {
+              return Response.status(400).build();
+          }
+      }
+      
+      @PUT
+      @Path("/setSaleStatus/{id}")
+      @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+      public Response setSaleStatus(@PathParam("id") int id, MultivaluedMap<String, String> formParams) throws NamingException {
+    	  SaleManager sale = new SaleManager();
+          int result = sale.setSaleStatus(id, formParams);
 
           JSONObject jsonObj = new JSONObject();
           if(result > 0) {

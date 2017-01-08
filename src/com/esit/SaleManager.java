@@ -18,6 +18,7 @@ public class SaleManager {
     private String notes;
     private String dateSigned;
     private String salesRepId;
+    private String status;
 
     //default constructor, do nothing
     public SaleManager() {
@@ -45,6 +46,49 @@ public class SaleManager {
         this.notes = formParams.get("notes").get(0);
         this.dateSigned = formParams.get("dateSigned").get(0);
         this.salesRepId = formParams.get("salesRepId").get(0);
+    }
+    
+    public int setSaleStatus(int id, MultivaluedMap<String, String> formParams) {
+        int result = 0;
+        String status = formParams.get("status").get(0);
+        System.out.println(status);
+        try {
+
+        	//getting a connection to the Database
+            conn = new ConnectionManager();
+            
+            // Set the folderId
+            this.setStatus(status);
+            System.out.println("get: " + this.getStatus());
+            
+            //create new sale object
+            String newSaleQuery = "UPDATE Sale SET "
+                  + "status = "
+                  + "'" + this.getStatus() + "' "
+                  + "WHERE saleId = " + id;
+
+            //execute new sale query
+            result = conn.executeUpdate(newSaleQuery);
+
+            //checking whether we created a Sale
+            String getSaleQuery = "SELECT saleId, status "
+                  + "FROM Sale "
+                  + "WHERE saleId = " + id;
+
+            ResultSet resultSet = conn.executeQuery(getSaleQuery);
+            if(resultSet.next() && resultSet.getString("status").equals(status)) {
+            	result = Integer.parseInt(resultSet.getString("saleId"));
+            } else {
+            	result = 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //close the connection to the database
+            conn.closeConnection();
+        }
+
+        return result;
     }
 
     public JSONObject getAllCompleted() throws NamingException {
@@ -251,6 +295,7 @@ public class SaleManager {
                     + "Program.programId, "
                     + "Sale.installationDateTime, "
                     + "Sale.notes, "
+                    + "Sale.status, "
                     + "Sale.salesRepId "
                     + "FROM Sale " 
                     + "JOIN Customer ON Sale.customer = Customer.customerId "
@@ -286,6 +331,7 @@ public class SaleManager {
               sale.put("programId", resultSet.getString("programId"));
               sale.put("installationDateTime", resultSet.getString("installationDateTime"));
               sale.put("notes", resultSet.getString("notes"));
+              sale.put("status", resultSet.getString("status"));
               sale.put("salesRepId", resultSet.getString("salesRepId"));
             }
             
@@ -399,4 +445,12 @@ public class SaleManager {
     public void setSalesRepId(String salesRepId) {
         this.salesRepId = salesRepId;
     }
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
 }
