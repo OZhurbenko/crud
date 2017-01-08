@@ -215,7 +215,7 @@ public class CustomerManager {
               customer.put("lastName", resultSet.getString("lastName"));
               customer.put("email", resultSet.getString("email"));
               customer.put("homePhone", resultSet.getString("homePhone"));
-              customer.put("phoneNumber", resultSet.getString("cellPhone"));
+              customer.put("cellPhone", resultSet.getString("cellPhone"));
               customer.put("enbridgeNumber", resultSet.getString("enbridgeNum"));
             }
 
