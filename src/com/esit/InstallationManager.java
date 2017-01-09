@@ -41,12 +41,12 @@ public class InstallationManager {
             String newInstallationQuery = "INSERT INTO Installation ("
                     + "installer, sale, installationDateTime, status) "
                     + "VALUES(" + this.getInstallerId() + ", " + this.getSaleId() + ", '"
-                    + this.getInstallationDateTime() + "', " + "'In Progress')";
+                    + this.getInstallationDateTime() + "', " + "'Scheduled')";
 
             //execute new installation query
             result = conn.executeUpdate(newInstallationQuery);
 
-            String updateSaleQuery = "UPDATE Sale set status='Waiting for the installation' "
+            String updateSaleQuery = "UPDATE Sale set status='Finished' "
                     + "WHERE saleId=" + this.getSaleId();
 
             //execute update sale query
@@ -137,7 +137,7 @@ public class InstallationManager {
                     + "JOIN Property ON Sale.customer = Property.customer "
                     + "JOIN Address ON Property.address = Address.addressId "
                     + "JOIN Customer ON Sale.customer = Customer.customerId "
-                    + "WHERE Installation.status = 'Completed'";
+                    + "WHERE Installation.status = 'Scheduled'";
 
             //create a new Query object
             conn = new ConnectionManager();

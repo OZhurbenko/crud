@@ -106,7 +106,7 @@ public class SaleManager {
                     + "JOIN Program ON Sale.program = Program.programId "
                     + "JOIN Property ON Sale.customer = Property.customer "
                     + "JOIN Address ON Property.address = Address.addressId "
-                    + "WHERE status = 'Completed'";
+                    + "WHERE status = 'Paid'";
 
             //create a new Query object
             conn = new ConnectionManager();
@@ -192,7 +192,7 @@ public class SaleManager {
                           + "installationDateTime, notes, status) "
                           + "VALUES(" + customerID + ", " + this.getSalesRepId() + ", " + this.getProgramType()
                           + ", NULL, NULL, '" + this.getDateSigned() + "', '"
-                          + this.getInstallationDateTime() + "', '" + this.getNotes() + "', " + "'In progress')";
+                          + this.getInstallationDateTime() + "', '" + this.getNotes() + "', " + "'Created')";
 
                   //execute new sale query
                   result = conn.executeUpdate(newSaleQuery);
@@ -205,7 +205,7 @@ public class SaleManager {
                           + "AND program = " + this.getProgramType() + " "
                           + "AND dateSigned = '" + this.getDateSigned() + "' "
                           + "AND installationDateTime = '" + this.getInstallationDateTime() + "' "
-                          + "AND status = 'In progress'";
+                          + "AND status = 'Created'";
 
                   resultSet = conn.executeQuery(getSaleQuery);
                   if(resultSet.next()) {
