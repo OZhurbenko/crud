@@ -371,7 +371,7 @@ public class SaleManager {
             if (resultSet.next()) {
               String folderId = resultSet.getString("folderId");
               sale.put("salesNumber", resultSet.getString("saleId"));
-              sale.put("folderId", folderId.isEmpty() ? "0" : folderId);
+              sale.put("folderId", folderId == null || folderId.isEmpty() ? "0" : folderId);
             } else {
               // Default to 'unsorted' folder on Box.com
               sale.put("salesNumber", "0");
