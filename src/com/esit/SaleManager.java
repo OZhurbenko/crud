@@ -47,7 +47,6 @@ public class SaleManager {
         this.notes = formParams.get("notes").get(0);
         this.dateSigned = formParams.get("dateSigned").get(0);
         this.salesRepId = formParams.get("salesRepId").get(0);
-        this.folderId = formParams.get("folderId").get(0);
     }
 
     public JSONObject getAllCompleted() throws NamingException {
@@ -148,11 +147,10 @@ public class SaleManager {
                   String newSaleQuery = "INSERT INTO Sale ("
                           + "customer, salesRepId, program, "
                           + "rentalAgreement, PADForm, dateSigned, "
-                          + "installationDateTime, notes, status, folderId) "
+                          + "installationDateTime, notes, status) "
                           + "VALUES(" + customerID + ", " + this.getSalesRepId() + ", " + this.getProgramType()
                           + ", NULL, NULL, '" + this.getDateSigned() + "', '"
-                          + this.getInstallationDateTime() + "', '" + this.getNotes() + "', " + "'In progress', '"
-                          + this.getFolderId() + "')";
+                          + this.getInstallationDateTime() + "', '" + this.getNotes() + "', " + "'In progress')";
 
                   //execute new sale query
                   result = conn.executeUpdate(newSaleQuery);
@@ -165,8 +163,7 @@ public class SaleManager {
                           + "AND program = " + this.getProgramType() + " "
                           + "AND dateSigned = '" + this.getDateSigned() + "' "
                           + "AND installationDateTime = '" + this.getInstallationDateTime() + "' "
-                          + "AND status = 'In progress' "
-                          + "AND folderId = '" + this.getFolderId() + "'";
+                          + "AND status = 'In progress'";
 
                   resultSet = conn.executeQuery(getSaleQuery);
                   if(resultSet.next()) {
