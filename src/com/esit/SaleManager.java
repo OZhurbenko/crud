@@ -18,12 +18,9 @@ public class SaleManager {
     private String notes;
     private String dateSigned;
     private String salesRepId;
-<<<<<<< HEAD
     private String folderId;
     private String envelopeId;
-=======
     private String status;
->>>>>>> f70d68da06599c7d701ce8925cf69d8ac3196114
 
     //default constructor, do nothing
     public SaleManager() {
@@ -341,14 +338,10 @@ public class SaleManager {
                     + "Program.programId, "
                     + "Sale.installationDateTime, "
                     + "Sale.notes, "
-<<<<<<< HEAD
-                    + "Sale.salesRepId, "
                     + "Sale.folderId, "
                     + "Sale.envelopeId "
-=======
                     + "Sale.status, "
                     + "Sale.salesRepId "
->>>>>>> f70d68da06599c7d701ce8925cf69d8ac3196114
                     + "FROM Sale " 
                     + "JOIN Customer ON Sale.customer = Customer.customerId "
                     + "JOIN Program ON Sale.program = Program.programId "
@@ -542,7 +535,6 @@ public class SaleManager {
         this.salesRepId = salesRepId;
     }
 
-<<<<<<< HEAD
 	public String getFolderId() {
 		return folderId;
 	}
@@ -557,13 +549,12 @@ public class SaleManager {
 
 	public void setEnvelopeId(String envelopeId) {
 		this.envelopeId = envelopeId;
-=======
+	}
 	public String getStatus() {
 		return status;
 	}
 
 	public void setStatus(String status) {
 		this.status = status;
->>>>>>> f70d68da06599c7d701ce8925cf69d8ac3196114
 	}
 }
