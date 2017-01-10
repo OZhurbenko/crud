@@ -18,8 +18,12 @@ public class SaleManager {
     private String notes;
     private String dateSigned;
     private String salesRepId;
+<<<<<<< HEAD
     private String folderId;
     private String envelopeId;
+=======
+    private String status;
+>>>>>>> f70d68da06599c7d701ce8925cf69d8ac3196114
 
     //default constructor, do nothing
     public SaleManager() {
@@ -48,6 +52,49 @@ public class SaleManager {
         this.dateSigned = formParams.get("dateSigned").get(0);
         this.salesRepId = formParams.get("salesRepId").get(0);
     }
+    
+    public int setSaleStatus(int id, MultivaluedMap<String, String> formParams) {
+        int result = 0;
+        String status = formParams.get("status").get(0);
+        System.out.println(status);
+        try {
+
+        	//getting a connection to the Database
+            conn = new ConnectionManager();
+            
+            // Set the folderId
+            this.setStatus(status);
+            System.out.println("get: " + this.getStatus());
+            
+            //create new sale object
+            String newSaleQuery = "UPDATE Sale SET "
+                  + "status = "
+                  + "'" + this.getStatus() + "' "
+                  + "WHERE saleId = " + id;
+
+            //execute new sale query
+            result = conn.executeUpdate(newSaleQuery);
+
+            //checking whether we created a Sale
+            String getSaleQuery = "SELECT saleId, status "
+                  + "FROM Sale "
+                  + "WHERE saleId = " + id;
+
+            ResultSet resultSet = conn.executeQuery(getSaleQuery);
+            if(resultSet.next() && resultSet.getString("status").equals(status)) {
+            	result = Integer.parseInt(resultSet.getString("saleId"));
+            } else {
+            	result = 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //close the connection to the database
+            conn.closeConnection();
+        }
+
+        return result;
+    }
 
     public JSONObject getAllCompleted() throws NamingException {
         JSONObject jsonObject = new JSONObject();
@@ -64,7 +111,7 @@ public class SaleManager {
                     + "JOIN Program ON Sale.program = Program.programId "
                     + "JOIN Property ON Sale.customer = Property.customer "
                     + "JOIN Address ON Property.address = Address.addressId "
-                    + "WHERE status = 'Completed'";
+                    + "WHERE status = 'Paid'";
 
             //create a new Query object
             conn = new ConnectionManager();
@@ -150,7 +197,7 @@ public class SaleManager {
                           + "installationDateTime, notes, status) "
                           + "VALUES(" + customerID + ", " + this.getSalesRepId() + ", " + this.getProgramType()
                           + ", NULL, NULL, '" + this.getDateSigned() + "', '"
-                          + this.getInstallationDateTime() + "', '" + this.getNotes() + "', " + "'In progress')";
+                          + this.getInstallationDateTime() + "', '" + this.getNotes() + "', " + "'Created')";
 
                   //execute new sale query
                   result = conn.executeUpdate(newSaleQuery);
@@ -163,7 +210,7 @@ public class SaleManager {
                           + "AND program = " + this.getProgramType() + " "
                           + "AND dateSigned = '" + this.getDateSigned() + "' "
                           + "AND installationDateTime = '" + this.getInstallationDateTime() + "' "
-                          + "AND status = 'In progress'";
+                          + "AND status = 'Created'";
 
                   resultSet = conn.executeQuery(getSaleQuery);
                   if(resultSet.next()) {
@@ -294,9 +341,14 @@ public class SaleManager {
                     + "Program.programId, "
                     + "Sale.installationDateTime, "
                     + "Sale.notes, "
+<<<<<<< HEAD
                     + "Sale.salesRepId, "
                     + "Sale.folderId, "
                     + "Sale.envelopeId "
+=======
+                    + "Sale.status, "
+                    + "Sale.salesRepId "
+>>>>>>> f70d68da06599c7d701ce8925cf69d8ac3196114
                     + "FROM Sale " 
                     + "JOIN Customer ON Sale.customer = Customer.customerId "
                     + "JOIN Program ON Sale.program = Program.programId "
@@ -331,6 +383,7 @@ public class SaleManager {
               sale.put("programId", resultSet.getString("programId"));
               sale.put("installationDateTime", resultSet.getString("installationDateTime"));
               sale.put("notes", resultSet.getString("notes"));
+              sale.put("status", resultSet.getString("status"));
               sale.put("salesRepId", resultSet.getString("salesRepId"));
               sale.put("folderId", resultSet.getString("folderId"));
               sale.put("envelopeId", resultSet.getString("envelopeId"));
@@ -489,6 +542,7 @@ public class SaleManager {
         this.salesRepId = salesRepId;
     }
 
+<<<<<<< HEAD
 	public String getFolderId() {
 		return folderId;
 	}
@@ -503,5 +557,13 @@ public class SaleManager {
 
 	public void setEnvelopeId(String envelopeId) {
 		this.envelopeId = envelopeId;
+=======
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+>>>>>>> f70d68da06599c7d701ce8925cf69d8ac3196114
 	}
 }

@@ -82,6 +82,19 @@ public class SaleService {
 
           if(result != 0) {
               return Response.status(200).entity(jsonObj + "").build();
+      @Path("/setSaleStatus/{id}")
+      @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+      public Response setSaleStatus(@PathParam("id") int id, MultivaluedMap<String, String> formParams) throws NamingException {
+    	  SaleManager sale = new SaleManager();
+          int result = sale.setSaleStatus(id, formParams);
+
+          JSONObject jsonObj = new JSONObject();
+          if(result > 0) {
+              jsonObj = sale.getSaleById(result);
+          }
+
+          if(result != 0) {
+              return Response.status(201).entity(jsonObj + "").build();
           } else {
               return Response.status(400).build();
           }
