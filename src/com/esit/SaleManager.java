@@ -339,7 +339,7 @@ public class SaleManager {
                     + "Sale.installationDateTime, "
                     + "Sale.notes, "
                     + "Sale.folderId, "
-                    + "Sale.envelopeId "
+                    + "Sale.envelopeId, "
                     + "Sale.status, "
                     + "Sale.salesRepId "
                     + "FROM Sale " 
