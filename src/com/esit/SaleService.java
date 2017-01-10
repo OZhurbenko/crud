@@ -88,6 +88,25 @@ public class SaleService {
       }
       
       @PUT
+      @Path("/setFolderId/{id}")
+      @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+      public Response setFolderId(@PathParam("id") int id, MultivaluedMap<String, String> formParams) throws NamingException {
+          SaleManager sale = new SaleManager();
+          int result = sale.setFolderId(id, formParams);
+
+          JSONObject jsonObj = new JSONObject();
+          if(result > 0) {
+              jsonObj.put("folderId", result);
+          }
+
+          if(result != 0) {
+              return Response.status(200).entity(jsonObj + "").build();
+          } else {
+              return Response.status(400).build();
+          }
+      }
+      
+      @PUT
       @Path("/setSaleStatus/{id}")
       @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
       public Response setSaleStatus(@PathParam("id") int id, MultivaluedMap<String, String> formParams) throws NamingException {

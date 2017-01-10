@@ -266,6 +266,47 @@ public class SaleManager {
         return result;
     }
     
+    public int setFolderId(int id, MultivaluedMap<String, String> formParams) {
+        int result = 0;
+        String folderId = formParams.get("folderId").get(0);
+        System.out.println(folderId);
+        try {
+
+        	//getting a connection to the Database
+            conn = new ConnectionManager();
+            
+            // Set the folderId
+            this.setFolderId(folderId);
+            System.out.println("get: " + this.getFolderId());
+            
+            //create new sale object
+            String newSaleQuery = "UPDATE Sale SET "
+                  + "folderId = "
+                  + "'" + this.getFolderId() + "' "
+                  + "WHERE saleId = " + id;
+
+            //execute new sale query
+            result = conn.executeUpdate(newSaleQuery);
+
+            //checking whether we created a Sale
+            String getSaleQuery = "SELECT saleId, folderId "
+                  + "FROM Sale "
+                  + "WHERE saleId = " + id;
+
+            ResultSet resultSet = conn.executeQuery(getSaleQuery);
+            if(resultSet.next()) {
+            	result = Integer.parseInt(resultSet.getString("folderId"));
+          }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //close the connection to the database
+            conn.closeConnection();
+        }
+
+        return result;
+    }
+    
     // Get all sales
     public JSONObject getAllSales() throws NamingException {
         JSONObject jsonObject = new JSONObject();
