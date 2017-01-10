@@ -86,7 +86,8 @@ public class SaleService {
               return Response.status(400).build();
           }
       }
-          
+      
+      @PUT
       @Path("/setSaleStatus/{id}")
       @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
       public Response setSaleStatus(@PathParam("id") int id, MultivaluedMap<String, String> formParams) throws NamingException {
