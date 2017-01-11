@@ -4,6 +4,7 @@ import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 //import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -75,6 +76,26 @@ public class InstallationService {
 //        jsonObj.put("dateSigned", sale.getDateSigned());
 //        jsonObj.put("salesRepId", sale.getSalesRepI());
 //        jsonObj.put("result", result);
+
+        if(result != 0) {
+            return Response.status(200).entity(jsonObj + "").build();
+        } else {
+            return Response.status(400).build();
+        }
+    }
+    
+    // Set envelopeId for installation
+    @PUT
+    @Path("/setEnvelopeId/{id}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response setEnvelopeId(@PathParam("id") int id, MultivaluedMap<String, String> formParams) throws NamingException {
+        InstallationManager installation = new InstallationManager();
+        int result = installation.setEnvelopeId(id, formParams);
+
+        JSONObject jsonObj = new JSONObject();
+        if(result > 0) {
+            jsonObj.put("installationId", result);
+        }
 
         if(result != 0) {
             return Response.status(200).entity(jsonObj + "").build();

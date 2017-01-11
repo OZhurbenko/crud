@@ -14,6 +14,7 @@ public class InstallationManager {
     private String installerId;
     private String installationDateTime;
     private String folderId;
+    private String envelopeId;
 
     ConnectionManager conn;
 
@@ -118,6 +119,47 @@ public class InstallationManager {
               conn.closeConnection();
           }
         return jsonObject;
+    }
+    
+    public int setEnvelopeId(int id, MultivaluedMap<String, String> formParams) {
+        int result = 0;
+        String envelopeId = formParams.get("envelopeId").get(0);
+        System.out.println(envelopeId);
+        try {
+
+        	//getting a connection to the Database
+            conn = new ConnectionManager();
+            
+            // Set the folderId
+            this.setEnvelopeId(envelopeId);
+            System.out.println("get: " + this.getEnvelopeId());
+            
+            //create new sale object
+            String newSaleQuery = "UPDATE Installation SET "
+                  + "envelopeId = "
+                  + "'" + this.getEnvelopeId() + "' "
+                  + "WHERE installationId = " + id;
+
+            //execute new sale query
+            result = conn.executeUpdate(newSaleQuery);
+
+            //checking whether we created a Sale
+            String getSaleQuery = "SELECT installationId, envelopeId "
+                  + "FROM Installation "
+                  + "WHERE installationId = " + id;
+
+            ResultSet resultSet = conn.executeQuery(getSaleQuery);
+            if(resultSet.next()) {
+            	result = Integer.parseInt(resultSet.getString("installationId"));
+          }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //close the connection to the database
+            conn.closeConnection();
+        }
+
+        return result;
     }
 
     // Get all scheduled installations
@@ -287,4 +329,12 @@ public class InstallationManager {
     public void setFolderId(String folderId) {
         this.folderId = folderId;
     }
+
+	public String getEnvelopeId() {
+		return envelopeId;
+	}
+
+	public void setEnvelopeId(String envelopeId) {
+		this.envelopeId = envelopeId;
+	}
 }
