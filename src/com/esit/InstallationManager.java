@@ -13,6 +13,7 @@ public class InstallationManager {
     private String saleId;
     private String installerId;
     private String installationDateTime;
+    private String folderId;
 
     ConnectionManager conn;
 
@@ -26,6 +27,7 @@ public class InstallationManager {
         this.setSaleId(formParams.get("saleId").get(0));
         this.setInstallerId(formParams.get("installerId").get(0));
         this.setInstallationDateTime(formParams.get("installationDateTime").get(0));
+        this.setFolderId(formParams.get("folderId").get(0));
     }
 
     // Create installation
@@ -39,9 +41,9 @@ public class InstallationManager {
 
             //create new installation object
             String newInstallationQuery = "INSERT INTO Installation ("
-                    + "installer, sale, installationDateTime, status) "
+                    + "installer, sale, installationDateTime, status, folderId) "
                     + "VALUES(" + this.getInstallerId() + ", " + this.getSaleId() + ", '"
-                    + this.getInstallationDateTime() + "', " + "'Scheduled')";
+                    + this.getInstallationDateTime() + "', " + "'Scheduled', " + this.getFolderId() + ")";
 
             //execute new installation query
             result = conn.executeUpdate(newInstallationQuery);
@@ -276,5 +278,13 @@ public class InstallationManager {
 
     public void setInstallationDateTime(String installationDateTime) {
         this.installationDateTime = installationDateTime;
+    }
+
+    public String getFolderId() {
+        return folderId;
+    }
+
+    public void setFolderId(String folderId) {
+        this.folderId = folderId;
     }
 }

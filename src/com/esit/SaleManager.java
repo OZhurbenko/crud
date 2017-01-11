@@ -102,7 +102,8 @@ public class SaleManager {
                     + "Program.programName, "
                     + "Address.street, "
                     + "Sale.installationDateTime, "
-                    + "Sale.status "
+                    + "Sale.status, "
+                    + "Sale.folderId "
                     + "FROM Sale "
                     + "JOIN Customer ON Sale.customer = Customer.customerId "
                     + "JOIN Program ON Sale.program = Program.programId "
@@ -129,6 +130,7 @@ public class SaleManager {
               tempJson.put("address", resultSet.getString("street"));
               tempJson.put("installationDateTime", resultSet.getString("installationDateTime"));
               tempJson.put("status", resultSet.getString("status"));
+              tempJson.put("folderId", resultSet.getString("folderId"));
               sales.add(tempJson);
             }
 
