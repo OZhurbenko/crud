@@ -297,7 +297,9 @@ public class SaleManager {
 
             ResultSet resultSet = conn.executeQuery(getSaleQuery);
             if(resultSet.next()) {
-            	result = Integer.parseInt(resultSet.getString("folderId"));
+                if (resultSet.getString("folderId") == folderId) {
+                    result = Integer.parseInt(resultSet.getString("saleId"));
+                }
           }
         } catch (Exception e) {
             e.printStackTrace();
