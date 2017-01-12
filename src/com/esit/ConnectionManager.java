@@ -24,20 +24,20 @@ public class ConnectionManager {
         // Get the context and create a connection
         Context initCtx;
         Context envCtx;
-		try {
-		    initCtx = new InitialContext();
-		    envCtx = (Context) initCtx.lookup("java:comp/env");
-		    this.datasource = (DataSource)envCtx.lookup("jdbc/esit");
-		    this.connect = this.datasource.getConnection();
-		} catch (NamingException | SQLException e) {
-		    // TODO Auto-generated catch block
-		    e.printStackTrace();
-		}
+        try {
+            initCtx = new InitialContext();
+            envCtx = (Context) initCtx.lookup("java:comp/env");
+            this.datasource = (DataSource)envCtx.lookup("jdbc/esit");
+            this.connect = this.datasource.getConnection();
+        } catch (NamingException | SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     public ResultSet executeQuery(String query) {
         try {
-	        // Create the statement to be used to get the results.
+            // Create the statement to be used to get the results.
             statement = connect.createStatement();
 
             // Execute the query and get the result set.

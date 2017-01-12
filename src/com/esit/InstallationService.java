@@ -20,12 +20,12 @@ import org.json.JSONObject;
 @Path("/InstallationService")
 public class InstallationService {
 	// Get all installations
-    @Path("getAllInstallations")
+    @Path("getAllInstallations/{id}")
     @GET
     @Produces("application/json")
-    public Response getAllInstallations() throws JSONException, NamingException {
+    public Response getAllInstallations(@PathParam("id") int id) throws JSONException, NamingException {
       InstallationManager installation = new InstallationManager();
-      String result = installation.getAllInstallations() + "";
+      String result = installation.getAllInstallations(id) + "";
       return Response.status(200).entity(result).build();
     }
 

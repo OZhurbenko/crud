@@ -20,12 +20,12 @@ import org.json.JSONObject;
 @Path("/SaleService")
 public class SaleService {
       // Get all sales
-      @Path("getAllSales")
+      @Path("getAllSales/{id}")
       @GET
       @Produces("application/json")
-      public Response getAllSales() throws JSONException, NamingException {
+      public Response getAllSales(@PathParam("id") int id) throws JSONException, NamingException {
         SaleManager sales = new SaleManager();
-        String result = sales.getAllSales() + "";
+        String result = sales.getAllSales(id) + "";
         return Response.status(200).entity(result).build();
       }
       
