@@ -201,7 +201,8 @@ public class InstallationManager {
                     + "Program.programName, "
                     + "Address.street, "
                     + "Installation.installationDateTime, "
-                    + "Installation.status "
+                    + "Installation.status, "
+                    + "Installation.folderId "
                     + "FROM Installation "
                     + "JOIN Sale ON Installation.sale = Sale.saleId "
                     + "JOIN Employee ON Installation.installer = Employee.employeeId "
@@ -231,6 +232,7 @@ public class InstallationManager {
               tempJson.put("address", resultSet.getString("street"));
               tempJson.put("installationDateTime", resultSet.getString("installationDateTime"));
               tempJson.put("status", resultSet.getString("status"));
+              tempJson.put("folderId", resultSet.getString("folderId"));
               installations.add(tempJson);
             }
 
