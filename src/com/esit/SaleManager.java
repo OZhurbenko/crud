@@ -308,22 +308,46 @@ public class SaleManager {
     }
     
     // Get all sales
-    public JSONObject getAllSales() throws NamingException {
+    public JSONObject getAllSales(int id) throws NamingException {
         JSONObject jsonObject = new JSONObject();
         try {
-            //create a query string
-            String _query = "SELECT Sale.saleId, " 
-                    + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
-                    + "Program.programName, "
-                    + "Address.street, "
-                    + "Sale.dateSigned, "
-                    + "Sale.status "
-                    + "FROM Sale " 
-                    + "JOIN Customer ON Sale.customer = Customer.customerId "
-                    + "JOIN Program ON Sale.program = Program.programId "
-                    + "JOIN Property ON Sale.customer = Property.customer "
-                    + "JOIN Address ON Property.address = Address.addressId";
+            String _query = "";
+            EmployeeManager employeeMngr = new EmployeeManager();
+            JSONObject jsonObj = new JSONObject();
+            jsonObj = employeeMngr.getEmployeeById(id);
+            JSONObject employee = jsonObj.getJSONObject("employee");
+            String role = employee.getString("role");
             
+            if(role != null && !role.isEmpty()) {
+                if(role.equals("salesperson")) {
+                    //create a query string
+                    _query = "SELECT Sale.saleId, "
+                            + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                            + "Program.programName, "
+                            + "Address.street, "
+                            + "Sale.dateSigned, "
+                            + "Sale.status "
+                            + "FROM Sale "
+                            + "JOIN Customer ON Sale.customer = Customer.customerId "
+                            + "JOIN Program ON Sale.program = Program.programId "
+                            + "JOIN Property ON Sale.customer = Property.customer "
+                            + "JOIN Address ON Property.address = Address.addressId "
+                            + "WHERE Sale.salesRepId = " + id;
+                } else {
+                  //create a query string
+                    _query = "SELECT Sale.saleId, "
+                            + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                            + "Program.programName, "
+                            + "Address.street, "
+                            + "Sale.dateSigned, "
+                            + "Sale.status "
+                            + "FROM Sale "
+                            + "JOIN Customer ON Sale.customer = Customer.customerId "
+                            + "JOIN Program ON Sale.program = Program.programId "
+                            + "JOIN Property ON Sale.customer = Property.customer "
+                            + "JOIN Address ON Property.address = Address.addressId";
+                }
+            }
             //create a new Query object
             conn = new ConnectionManager();
             
