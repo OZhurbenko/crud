@@ -107,7 +107,7 @@ public class SaleService {
       }
       
       @PUT
-      @Path("/setSaleStatus/{id}")
+      @Path("/setStatus/{id}")
       @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
       public Response setSaleStatus(@PathParam("id") int id, MultivaluedMap<String, String> formParams) throws NamingException {
     	  SaleManager sale = new SaleManager();
