@@ -13,6 +13,8 @@ public class InstallationManager {
     private String saleId;
     private String installerId;
     private String installationDateTime;
+    private String folderId;
+    private String envelopeId;
 
     ConnectionManager conn;
 
@@ -26,6 +28,7 @@ public class InstallationManager {
         this.setSaleId(formParams.get("saleId").get(0));
         this.setInstallerId(formParams.get("installerId").get(0));
         this.setInstallationDateTime(formParams.get("installationDateTime").get(0));
+        this.setFolderId(formParams.get("folderId").get(0));
     }
 
     // Create installation
@@ -39,9 +42,9 @@ public class InstallationManager {
 
             //create new installation object
             String newInstallationQuery = "INSERT INTO Installation ("
-                    + "installer, sale, installationDateTime, status) "
+                    + "installer, sale, installationDateTime, status, folderId) "
                     + "VALUES(" + this.getInstallerId() + ", " + this.getSaleId() + ", '"
-                    + this.getInstallationDateTime() + "', " + "'Scheduled')";
+                    + this.getInstallationDateTime() + "', " + "'Scheduled', " + this.getFolderId() + ")";
 
             //execute new installation query
             result = conn.executeUpdate(newInstallationQuery);
@@ -144,6 +147,47 @@ public class InstallationManager {
               conn.closeConnection();
           }
         return jsonObject;
+    }
+    
+    public int setEnvelopeId(int id, MultivaluedMap<String, String> formParams) {
+        int result = 0;
+        String envelopeId = formParams.get("envelopeId").get(0);
+        System.out.println(envelopeId);
+        try {
+
+        	//getting a connection to the Database
+            conn = new ConnectionManager();
+            
+            // Set the folderId
+            this.setEnvelopeId(envelopeId);
+            System.out.println("get: " + this.getEnvelopeId());
+            
+            //create new sale object
+            String newSaleQuery = "UPDATE Installation SET "
+                  + "envelopeId = "
+                  + "'" + this.getEnvelopeId() + "' "
+                  + "WHERE installationId = " + id;
+
+            //execute new sale query
+            result = conn.executeUpdate(newSaleQuery);
+
+            //checking whether we created a Sale
+            String getSaleQuery = "SELECT installationId, envelopeId "
+                  + "FROM Installation "
+                  + "WHERE installationId = " + id;
+
+            ResultSet resultSet = conn.executeQuery(getSaleQuery);
+            if(resultSet.next()) {
+            	result = Integer.parseInt(resultSet.getString("installationId"));
+          }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //close the connection to the database
+            conn.closeConnection();
+        }
+
+        return result;
     }
 
     // Get all scheduled installations
@@ -305,4 +349,20 @@ public class InstallationManager {
     public void setInstallationDateTime(String installationDateTime) {
         this.installationDateTime = installationDateTime;
     }
+
+    public String getFolderId() {
+        return folderId;
+    }
+
+    public void setFolderId(String folderId) {
+        this.folderId = folderId;
+    }
+
+	public String getEnvelopeId() {
+		return envelopeId;
+	}
+
+	public void setEnvelopeId(String envelopeId) {
+		this.envelopeId = envelopeId;
+	}
 }

@@ -102,7 +102,8 @@ public class SaleManager {
                     + "Program.programName, "
                     + "Address.street, "
                     + "Sale.installationDateTime, "
-                    + "Sale.status "
+                    + "Sale.status, "
+                    + "Sale.folderId "
                     + "FROM Sale "
                     + "JOIN Customer ON Sale.customer = Customer.customerId "
                     + "JOIN Program ON Sale.program = Program.programId "
@@ -129,6 +130,7 @@ public class SaleManager {
               tempJson.put("address", resultSet.getString("street"));
               tempJson.put("installationDateTime", resultSet.getString("installationDateTime"));
               tempJson.put("status", resultSet.getString("status"));
+              tempJson.put("folderId", resultSet.getString("folderId"));
               sales.add(tempJson);
             }
 
@@ -295,7 +297,9 @@ public class SaleManager {
 
             ResultSet resultSet = conn.executeQuery(getSaleQuery);
             if(resultSet.next()) {
-            	result = Integer.parseInt(resultSet.getString("folderId"));
+                if (resultSet.getString("folderId") == folderId) {
+                    result = Integer.parseInt(resultSet.getString("saleId"));
+                }
           }
         } catch (Exception e) {
             e.printStackTrace();
@@ -484,9 +488,25 @@ public class SaleManager {
               sale.put("salesNumber", resultSet.getString("saleId"));
               sale.put("folderId", folderId == null || folderId.isEmpty() ? "0" : folderId);
             } else {
-              // Default to 'unsorted' folder on Box.com
-              sale.put("salesNumber", "0");
-              sale.put("folderId", "15932309040");
+              // See if envelopeId exists in Installation
+              // Create a new query string
+              String _query2 = "SELECT sale, " 
+                    + "folderId "
+                    + "FROM Installation " 
+                    + "WHERE envelopeId LIKE '" + id + "'";
+                
+              // Execute the query statement and get the ResultSet
+              ResultSet resultSet2 = conn.executeQuery(_query2); 
+              
+              // If there are results fill the jsonObject
+              if (resultSet2.next()) {
+                  sale.put("salesNumber", resultSet2.getString("sale"));
+                  sale.put("folderId", resultSet2.getString("folderId"));
+              } else {
+                  // Default to 'unsorted' folder on Box.com
+                  sale.put("salesNumber", "0");
+                  sale.put("folderId", "15932309040");
+              }
             }
             
             //creating a final JSON object
