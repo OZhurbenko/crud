@@ -258,6 +258,7 @@ public class InstallationManager {
               tempJson.put("address", resultSet.getString("street"));
               tempJson.put("installationDateTime", resultSet.getString("installationDateTime"));
               tempJson.put("status", resultSet.getString("status"));
+              tempJson.put("folderId", resultSet.getString("folderId"));
               installations.add(tempJson);
             }
 
