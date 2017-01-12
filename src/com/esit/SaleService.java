@@ -107,11 +107,11 @@ public class SaleService {
       }
       
       @PUT
-      @Path("/setSaleStatus/{id}")
+      @Path("/setSaleStatus")
       @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-      public Response setSaleStatus(@PathParam("id") int id, MultivaluedMap<String, String> formParams) throws NamingException {
+      public Response setSaleStatus(MultivaluedMap<String, String> formParams) throws NamingException {
     	  SaleManager sale = new SaleManager();
-          int result = sale.setSaleStatus(id, formParams);
+          int result = sale.setSaleStatus(formParams);
 
           JSONObject jsonObj = new JSONObject();
           if(result > 0) {
