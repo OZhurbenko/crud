@@ -191,25 +191,52 @@ public class InstallationManager {
     }
 
     // Get all scheduled installations
-    public JSONObject getAllScheduled() throws NamingException {
+    public JSONObject getAllScheduled(int id) throws NamingException {
         JSONObject jsonObject = new JSONObject();
         try {
-            //create a query string
-            String _query = "SELECT Installation.installationId, "
-                    + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
-                    + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
-                    + "Program.programName, "
-                    + "Address.street, "
-                    + "Installation.installationDateTime, "
-                    + "Installation.status "
-                    + "FROM Installation "
-                    + "JOIN Sale ON Installation.sale = Sale.saleId "
-                    + "JOIN Employee ON Installation.installer = Employee.employeeId "
-                    + "JOIN Program ON Sale.program = Program.programId "
-                    + "JOIN Property ON Sale.customer = Property.customer "
-                    + "JOIN Address ON Property.address = Address.addressId "
-                    + "JOIN Customer ON Sale.customer = Customer.customerId "
-                    + "WHERE Installation.status = 'Scheduled'";
+            String _query = "";
+            EmployeeManager employeeMngr = new EmployeeManager();
+            JSONObject jsonObj = new JSONObject();
+            jsonObj = employeeMngr.getEmployeeById(id);
+            JSONObject employee = jsonObj.getJSONObject("employee");
+            String role = employee.getString("role");
+            if(role != null && !role.isEmpty()) {
+                if(role.equals("installer")) {
+                    //create a query string
+                    _query = "SELECT Installation.installationId, "
+                            + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                            + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
+                            + "Program.programName, "
+                            + "Address.street, "
+                            + "Installation.installationDateTime, "
+                            + "Installation.status "
+                            + "FROM Installation "
+                            + "JOIN Sale ON Installation.sale = Sale.saleId "
+                            + "JOIN Employee ON Installation.installer = Employee.employeeId "
+                            + "JOIN Program ON Sale.program = Program.programId "
+                            + "JOIN Property ON Sale.customer = Property.customer "
+                            + "JOIN Address ON Property.address = Address.addressId "
+                            + "JOIN Customer ON Sale.customer = Customer.customerId "
+                            + "WHERE Installation.status = 'Scheduled' "
+                            + "AND Installation.installer = " + id;
+                } else {
+                    _query = "SELECT Installation.installationId, "
+                            + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                            + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
+                            + "Program.programName, "
+                            + "Address.street, "
+                            + "Installation.installationDateTime, "
+                            + "Installation.status "
+                            + "FROM Installation "
+                            + "JOIN Sale ON Installation.sale = Sale.saleId "
+                            + "JOIN Employee ON Installation.installer = Employee.employeeId "
+                            + "JOIN Program ON Sale.program = Program.programId "
+                            + "JOIN Property ON Sale.customer = Property.customer "
+                            + "JOIN Address ON Property.address = Address.addressId "
+                            + "JOIN Customer ON Sale.customer = Customer.customerId "
+                            + "WHERE Installation.status = 'Scheduled'";
+                }
+            }
 
             //create a new Query object
             conn = new ConnectionManager();
