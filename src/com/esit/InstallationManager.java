@@ -15,6 +15,7 @@ public class InstallationManager {
     private String installationDateTime;
     private String folderId;
     private String envelopeId;
+    private String status;
 
     ConnectionManager conn;
 
@@ -300,7 +301,8 @@ public class InstallationManager {
                 + "Property.bathrooms , "
                 + "Property.residents , "
                 + "Property.hasPool, "
-                + "Installation.installationDateTime "
+                + "Installation.installationDateTime, "
+                + "Installation.status "
                 + "FROM Installation "
                 + "JOIN Sale ON Installation.sale = Sale.saleId "
                 + "JOIN Employee ON Installation.installer = Employee.employeeId "
@@ -335,6 +337,7 @@ public class InstallationManager {
               installation.put("enbridgeNum", resultSet.getString("enbridgeNum"));
               installation.put("homePhone", resultSet.getString("homePhone"));
               installation.put("cellPhone", resultSet.getString("cellPhone"));
+              installation.put("status", resultSet.getString("status"));
               installation.put("email", resultSet.getString("email"));
               installation.put("sqFootage", resultSet.getString("sqFootage"));
               installation.put("bathrooms", resultSet.getString("bathrooms"));
@@ -353,6 +356,49 @@ public class InstallationManager {
               conn.closeConnection();
           }
         return jsonObject;
+    }
+    
+    public int setInstallationStatus(int id, MultivaluedMap<String, String> formParams) {
+        int result = 0;
+        String status = formParams.get("status").get(0);
+        System.out.println(status);
+        try {
+
+        	//getting a connection to the Database
+            conn = new ConnectionManager();
+            
+            // Set the folderId
+            this.setStatus(status);
+            System.out.println("get: " + this.getStatus());
+            
+            //create new sale object
+            String newSaleQuery = "UPDATE Installation SET "
+                  + "status = "
+                  + "'" + this.getStatus() + "' "
+                  + "WHERE installationId = " + id;
+
+            //execute new sale query
+            result = conn.executeUpdate(newSaleQuery);
+
+            //checking whether we created a Sale
+            String getSaleQuery = "SELECT installationId, status "
+                  + "FROM Installation "
+                  + "WHERE installationId = " + id;
+
+            ResultSet resultSet = conn.executeQuery(getSaleQuery);
+            if(resultSet.next() && resultSet.getString("status").equals(status)) {
+            	result = Integer.parseInt(resultSet.getString("installationId"));
+            } else {
+            	result = 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //close the connection to the database
+            conn.closeConnection();
+        }
+
+        return result;
     }
 
     
@@ -394,5 +440,13 @@ public class InstallationManager {
 
 	public void setEnvelopeId(String envelopeId) {
 		this.envelopeId = envelopeId;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 }

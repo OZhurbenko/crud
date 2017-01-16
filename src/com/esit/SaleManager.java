@@ -50,10 +50,9 @@ public class SaleManager {
         this.salesRepId = formParams.get("salesRepId").get(0);
     }
     
-    public int setSaleStatus(MultivaluedMap<String, String> formParams) {
+    public int setSaleStatus(int id, MultivaluedMap<String, String> formParams) {
         int result = 0;
         String status = formParams.get("status").get(0);
-        String id = formParams.get("id").get(0);
         System.out.println(status);
         try {
 
