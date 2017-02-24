@@ -410,6 +410,7 @@ public class SaleManager {
                     + "Sale.folderId, "
                     + "Sale.envelopeId, "
                     + "Sale.status, "
+                    + "Sale.dateSigned, "
                     + "Sale.salesRepId "
                     + "FROM Sale " 
                     + "JOIN Customer ON Sale.customer = Customer.customerId "
@@ -449,6 +450,7 @@ public class SaleManager {
               sale.put("salesRepId", resultSet.getString("salesRepId"));
               sale.put("folderId", resultSet.getString("folderId"));
               sale.put("envelopeId", resultSet.getString("envelopeId"));
+              sale.put("dateSigned", resultSet.getString("dateSigned"));
             }
             
             //creating a final JSON object

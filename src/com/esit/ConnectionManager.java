@@ -17,6 +17,8 @@ public class ConnectionManager {
     int result;
 
     public ConnectionManager() {
+        System.out.println("ConnectionManager: establishing a db connection");
+
         this.statement = null;
         this.resultSet = null;
         this.result = 0;
@@ -36,10 +38,10 @@ public class ConnectionManager {
     }
 
     public ResultSet executeQuery(String query) {
+        System.out.println("ConnectionManager: Executing a query");
         try {
             // Create the statement to be used to get the results.
             statement = connect.createStatement();
-
             // Execute the query and get the result set.
             resultSet = statement.executeQuery(query);
         } catch (SQLException e) {
@@ -50,12 +52,12 @@ public class ConnectionManager {
 
     public int executeUpdate(String query) {
         try {
+            System.out.println("ConnectionManager: Executing an update");
             // Create the statement to be used to get the results.
             statement = connect.createStatement();
 
             // Execute the query and get the result set.
             this.result = statement.executeUpdate(query);
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -65,9 +67,11 @@ public class ConnectionManager {
     public void closeConnection(){
         try {
             if(statement != null) {
+            	System.out.println("ConnectionManager: Closing the Statement");
                 statement.close();
             }
             if(connect != null) {
+            	System.out.println("ConnectionManager: Closing the Connection");
                 connect.close();
             }
         } catch (SQLException e) {
