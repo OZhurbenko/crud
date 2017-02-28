@@ -119,7 +119,7 @@ public class SaleService {
           }
 
           if(result != 0) {
-              return Response.status(201).entity(jsonObj + "").build();
+              return Response.status(200).entity(jsonObj + "").build();
           } else {
               return Response.status(400).build();
           }

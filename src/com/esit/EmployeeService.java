@@ -4,7 +4,7 @@ import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-//import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -35,6 +35,17 @@ public class EmployeeService {
       public Response getEmployeesByRole(@PathParam("role") String role) throws JSONException, NamingException {
         EmployeeManager employee = new EmployeeManager();
         String result = employee.getEmployeesByRole(role) + "";
+        return Response.status(200).entity(result).build();
+      }
+
+      // Get all employees
+      @PUT
+      @Path("setStatus/{employeeId}")
+      @Produces("application/json")
+      public Response updateEmployeeStatus(@PathParam("employeeId") int employeeId) throws JSONException, NamingException {
+        EmployeeManager employee = new EmployeeManager();
+        String result = employee.updateStatus(employeeId) + "";
+        //TODO error handling, should return 204 if there was nothing to update
         return Response.status(200).entity(result).build();
       }
 

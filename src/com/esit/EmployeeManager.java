@@ -282,6 +282,36 @@ public class EmployeeManager {
         return jsonObject;
     }
 
+    public JSONObject updateStatus(int employeeId) {
+        JSONObject jsonObject = new JSONObject();
+        int result = 0;
+        try {
+            JSONObject employeeObj = this.getEmployeeById(employeeId);
+
+            if(employeeObj.length() > 0) {
+                employeeObj = employeeObj.getJSONObject("employee");
+                //status can be either true or false, so we just toggle it
+                String updateQuery = "UPDATE Employee SET "
+                      + "isActive = " + !employeeObj.getBoolean("isActive")
+                      + " "
+                      + "WHERE employeeId = " + employeeId;
+
+                conn = new ConnectionManager();
+                //execute new sale query
+                result = conn.executeUpdate(updateQuery);
+
+                jsonObject.put("updated", true);
+                //TODO validate update
+            } else {
+                //TODO error handling
+            }
+        } catch (NamingException e) {
+            e.printStackTrace();
+        }
+
+        return jsonObject;
+    }
+
     public String getFname() {
         return fname;
     }
