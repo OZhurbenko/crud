@@ -118,7 +118,7 @@ public class CustomerManager {
 
                   //create new Property object
                   String newPropertyQuery = "INSERT INTO Property (address, customer, sqFootage, bathrooms, residents, hasPool) "
-                          + "VALUES (" + addressID + ", " + customerID + ", 123, NULL, NULL, NULL)";
+                          + "VALUES (" + addressID + ", " + customerID + ", NULL, NULL, NULL, NULL)";
 
                   //execute create new Property query here and get the result
                   result = conn.executeUpdate(newPropertyQuery);
