@@ -78,12 +78,27 @@ public class InstallationService {
 //        jsonObj.put("result", result);
 
         if(result != 0) {
-            return Response.status(200).entity(jsonObj + "").build();
+            return Response.status(201).entity(jsonObj + "").build();
         } else {
             return Response.status(400).build();
         }
     }
     
+    // Update Installation object
+    @PUT
+    @Path("/updateInstallation/{id}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateInstallation(@PathParam("id") int id, MultivaluedMap<String, String> formParams) throws NamingException {
+        InstallationManager installation = new InstallationManager();
+        int result = installation.update(id, formParams);
+
+        if(result >= 0) {
+            return Response.status(200).build();
+        } else {
+            return Response.status(400).build();
+        }
+    }
+
     // Set envelopeId for installation
     @PUT
     @Path("/setEnvelopeId/{id}")

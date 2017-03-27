@@ -66,6 +66,45 @@ public class InstallationManager {
         return result;
     }
     
+    // Update installation
+    public int update(int id, MultivaluedMap<String, String> formParams) {
+        int result = 0;
+        try {
+            //Creating a connection
+            conn = new ConnectionManager();
+
+            String sqft = formParams.get("sqft").get(0);
+            String bathrooms = formParams.get("bathrooms").get(0);
+            String residents = formParams.get("residents").get(0);
+            String pool = formParams.get("pool").get(0);
+
+            String notes = formParams.get("notes").get(0);
+            String installedDate = formParams.get("installedDate").get(0);
+            String updateQuery = "UPDATE Property, Customer, Sale, Installation "
+                                + "SET Property.sqFootage = " + sqft + ", "
+                                + "Property.bathrooms = " + bathrooms + ", "
+                                + "Property.residents = " + residents + ", "
+                                + "Property.hasPool = " + pool + ", "
+                                + "Installation.notes = '" + notes + "', "
+                                + "Installation.installationDateTime = '" + installedDate + "' "
+                                + "WHERE Installation.installationId = " + id + " "
+                                + "AND Installation.sale = Sale.saleId "
+                                + "AND Sale.customer = Customer.customerId "
+                                + "AND Property.customer = Customer.customerId";
+
+            //execute update sale query
+            result = conn.executeUpdate(updateQuery);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //close the connection to the database
+            conn.closeConnection();
+        }
+
+        return result;
+    }
+
     // Get all installations
     public JSONObject getAllInstallations(int id) throws NamingException {
         JSONObject jsonObject = new JSONObject();

@@ -38,6 +38,21 @@ public class EmployeeService {
         return Response.status(200).entity(result).build();
       }
 
+      // Update Employee object
+      @PUT
+      @Path("/updateEmployee/{id}")
+      @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+      public Response updateInstallation(@PathParam("id") int id, MultivaluedMap<String, String> formParams) throws NamingException {
+          EmployeeManager employee = new EmployeeManager();
+          int result = employee.update(id, formParams);
+
+          if(result >= 0) {
+              return Response.status(200).build();
+          } else {
+              return Response.status(400).build();
+          }
+      }
+
       // Get all employees
       @PUT
       @Path("setStatus/{employeeId}")
@@ -82,7 +97,7 @@ public class EmployeeService {
           jsonObj.put("result", result);
 
           if(result != 0) {
-              return Response.status(200).entity(jsonObj + "").build();
+              return Response.status(201).entity(jsonObj + "").build();
           } else {
               return Response.status(400).build();
           }

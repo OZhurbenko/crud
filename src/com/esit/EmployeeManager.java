@@ -119,6 +119,61 @@ public class EmployeeManager {
         return employeeId;
     }
 
+    // Update employee
+    public int update(int id, MultivaluedMap<String, String> formParams) {
+        int result = 0;
+        try {
+            //Creating a connection
+            conn = new ConnectionManager();
+
+            String fname = formParams.get("fname").get(0);
+            String lname = formParams.get("lname").get(0);
+            String email = formParams.get("email").get(0);
+            String homePhone = formParams.get("homePhone").get(0);
+            String cellPhone = formParams.get("cellPhone").get(0);
+            String hireDate = formParams.get("hireDate").get(0);
+            String employeeType = formParams.get("employeeType").get(0);
+
+            String street = formParams.get("street").get(0);
+            String unitNum = formParams.get("unitNum").get(0);
+            String city = formParams.get("city").get(0);
+            String province = formParams.get("province").get(0);
+            String postalCode = formParams.get("postalCode").get(0);
+
+            //password is optional
+            String password = formParams.get("password").get(0);
+
+            String updateQuery = "UPDATE Employee, Address "
+                                + "SET Employee.firstName = '" + fname + "', "
+                                + "Employee.lastName = '" + lname + "', "
+                                + "Employee.email = '" + email + "', "
+                                + "Employee.homePhone = '" + homePhone + "', "
+                                + "Employee.cellPhone = '" + cellPhone + "', "
+                                + "Employee.hireDate = '" + hireDate + "', "
+                                + "Employee.role = '" + employeeType + "', "
+                                + (password != null && !password.isEmpty() ?
+                                        "Employee.password = '" + password + "', " : "" )
+                                + "Address.street = '" + street + "', "
+                                + "Address.unit = '" + unitNum + "', "
+                                + "Address.city = '" + city + "', "
+                                + "Address.province = '" + province + "', "
+                                + "Address.postalCode = '" + postalCode + "' "
+                                + "WHERE Employee.employeeId = " + id + " "
+                                + "AND Employee.addressId = Address.addressId ";
+
+            //execute update sale query
+            result = conn.executeUpdate(updateQuery);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            //close the connection to the database
+            conn.closeConnection();
+        }
+
+        return result;
+    }
+
     // Get all employees
     public JSONObject getAll() throws NamingException {
         JSONObject jsonObject = new JSONObject();
