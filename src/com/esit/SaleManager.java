@@ -411,8 +411,10 @@ public class SaleManager {
                     + "Sale.envelopeId, "
                     + "Sale.status, "
                     + "Sale.dateSigned, "
-                    + "Sale.salesRepId "
-                    + "FROM Sale " 
+                    + "Sale.salesRepId, "
+                    + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS salesRepName "
+                    + "FROM Sale "
+                    + "JOIN Employee ON Sale.salesRepId = Employee.employeeId "
                     + "JOIN Customer ON Sale.customer = Customer.customerId "
                     + "JOIN Program ON Sale.program = Program.programId "
                     + "JOIN Property ON Sale.customer = Property.customer "
@@ -448,6 +450,7 @@ public class SaleManager {
               sale.put("notes", resultSet.getString("notes"));
               sale.put("status", resultSet.getString("status"));
               sale.put("salesRepId", resultSet.getString("salesRepId"));
+              sale.put("salesRepName", resultSet.getString("salesRepName"));
               sale.put("folderId", resultSet.getString("folderId"));
               sale.put("envelopeId", resultSet.getString("envelopeId"));
               sale.put("dateSigned", resultSet.getString("dateSigned"));
