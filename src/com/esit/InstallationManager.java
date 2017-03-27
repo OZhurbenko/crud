@@ -326,6 +326,7 @@ public class InstallationManager {
                 + "Customer.lastName, "
                 + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
                 + "Employee.employeeId, "
+                + "Employee.email AS installerEmail, "
                 + "Program.programName, "
                 + "Address.street, "
                 + "Address.unit, "
@@ -366,6 +367,7 @@ public class InstallationManager {
               installation.put("customerFirstName", resultSet.getString("firstName"));
               installation.put("customerLastName", resultSet.getString("lastName"));
               installation.put("installerId", resultSet.getString("employeeId"));
+              installation.put("installerEmail", resultSet.getString("installerEmail"));
               installation.put("installerName", resultSet.getString("installerName"));
               installation.put("product", resultSet.getString("programName"));
               installation.put("address", resultSet.getString("street"));
