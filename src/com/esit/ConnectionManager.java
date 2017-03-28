@@ -37,31 +37,8 @@ public class ConnectionManager {
         }
     }
 
-    public ResultSet executeQuery(String query) {
-        System.out.println("ConnectionManager: Executing a query");
-        try {
-            // Create the statement to be used to get the results.
-            statement = connect.createStatement();
-            // Execute the query and get the result set.
-            resultSet = statement.executeQuery(query);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return resultSet;
-    }
-
-    public int executeUpdate(String query) {
-        try {
-            System.out.println("ConnectionManager: Executing an update");
-            // Create the statement to be used to get the results.
-            statement = connect.createStatement();
-
-            // Execute the query and get the result set.
-            this.result = statement.executeUpdate(query);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return result;
+    public Connection getDBConnection() {
+        return this.connect;
     }
 
     public void closeConnection(){

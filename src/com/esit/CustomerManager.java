@@ -1,5 +1,7 @@
 package com.esit;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,111 +53,130 @@ public class CustomerManager {
     //creates a Customer object together with Address and Property
     //and returns a customer id if everything is fine
     public int create(ConnectionManager conn) {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         int result = 0;
         int customerID = 0;
         int addressID = 0;
+
+        String getCustomerIdQuery = "SELECT customerId FROM Customer WHERE email = ? ";
+        String createCustomerQuery = "INSERT INTO Customer (firstName, lastName, email, homePhone, cellPhone, enbridgeNum) "
+                + "VALUES ( ?, ?, ?, ?, ?, ?)";
+        String createAddressQuery = "INSERT INTO Address (street, unit, city, province, postalCode) "
+                + "VALUES ( ?, ?, ?, ?, ?)";
+        String getAddressIdQuery = "SELECT addressId FROM Address WHERE street = ? AND unit = ? AND city = ? AND province = ? AND postalCode = ? ";
+        String createPropertyQuery = "INSERT INTO Property (address, customer, sqFootage, bathrooms, residents, hasPool) "
+                + "VALUES ( ?, ?, NULL, NULL, NULL, NULL)";
         try {
 
-            //check whether we have a connection sent to us
-            if(conn == null) {
-              //getting a connection to the Database
-              conn = new ConnectionManager();
-            }
+          //check whether we have a connection sent to us
+          if(conn == null) {
+            //getting a connection to the Database
+            conn = new ConnectionManager();
+          }
+          dbConnection = conn.getDBConnection();
 
-            //checking whether a customer with such an email already exists
-            String getCustomerIdQuery = "SELECT customerId "
-                    + "FROM Customer "
-                    + "WHERE email = '" + this.getEmail() + "'";
-            ResultSet resultSet = conn.executeQuery(getCustomerIdQuery);
-            if(resultSet.next()) {
-              customerID = Integer.parseInt(resultSet.getString("customerId"));
-              return customerID;
+          //checking whether a customer with such an email already exists
+          preparedStatement = dbConnection.prepareStatement(getCustomerIdQuery);
+          preparedStatement.setString(1, this.getEmail());
 
-              //Customer doesn't exist, creating a new one
-            } else {
-              //create new Customer query
-              String newCustomerQuery = "INSERT INTO Customer ("
-                      + "firstName, lastName, email, homePhone, cellPhone, enbridgeNum) "
-                      + "VALUES ('" + this.getFname() + "', '" + this.getLname() + "', '" + this.getEmail() + "', '" +
-                      this.getHomePhone() + "', '" + this.getCellPhone() + "', '" + this.getEnbridge() + "')";
+          ResultSet resultSet = preparedStatement.executeQuery();
+          if(resultSet.next()) {
+            customerID = Integer.parseInt(resultSet.getString("customerId"));
+            return customerID;
 
-              //execute create new Customer query and get the confirmation
-              result = conn.executeUpdate(newCustomerQuery);
+            //Customer doesn't exist, creating a new one
+          } else {
+            //create new Customer query
+            preparedStatement = dbConnection.prepareStatement(createCustomerQuery);
+            preparedStatement.setString(1, this.getFname());
+            preparedStatement.setString(2, this.getLname());
+            preparedStatement.setString(3, this.getEmail());
+            preparedStatement.setString(4, this.getHomePhone());
+            preparedStatement.setString(5, this.getCellPhone());
+            preparedStatement.setString(6, this.getEnbridge());
 
-              //checking whether customer was created properly
+            //execute create new Customer query and get the confirmation
+            result = preparedStatement.executeUpdate();
+
+            //checking whether customer was created properly
+            if(result > 0) {
+              //getting the id of the new Customer object
+              preparedStatement = dbConnection.prepareStatement(getCustomerIdQuery);
+              preparedStatement.setString(1, this.getEmail());
+
+              resultSet = preparedStatement.executeQuery();
+              if(resultSet.next()) {
+                customerID = Integer.parseInt(resultSet.getString("customerId"));
+              }
+
+              //creating a new Address object
+              preparedStatement = dbConnection.prepareStatement(createAddressQuery);
+              preparedStatement.setString(1, this.getAddress());
+              preparedStatement.setString(2, this.getUnitNum());
+              preparedStatement.setString(3, this.getCity());
+              preparedStatement.setString(4, this.getProvince());
+              preparedStatement.setString(5, this.getPostalCode());
+
+              //execute create new Address query and get the confirmation
+              result = preparedStatement.executeUpdate();
+
+              //checking whether Address was created successfully
               if(result > 0) {
-                //getting the id of the new Customer object
-                getCustomerIdQuery = "SELECT customerId "
-                        + "FROM Customer "
-                        + "WHERE email = '" + this.getEmail() + "'";
-                resultSet = conn.executeQuery(getCustomerIdQuery);
+                //getting the id of the new Address object
+                preparedStatement = dbConnection.prepareStatement(getAddressIdQuery);
+                preparedStatement.setString(1, this.getAddress());
+                preparedStatement.setString(2, this.getUnitNum());
+                preparedStatement.setString(3, this.getCity());
+                preparedStatement.setString(4, this.getProvince());
+                preparedStatement.setString(5, this.getPostalCode());
+
+                resultSet = preparedStatement.executeQuery();
                 if(resultSet.next()) {
-                    customerID = Integer.parseInt(resultSet.getString("customerId"));
+                  addressID = Integer.parseInt(resultSet.getString("addressId"));
                 }
 
-                //create new Address query
-                String newAddressQuery = "INSERT INTO Address (street, unit, city, province, postalCode) "
-                        + "VALUES ('" + this.getAddress() + "', '" + this.getUnitNum() + "', '" + this.getCity() 
-                        + "', '" + this.getProvince() + "', '" + this.getPostalCode() + "')";
-                //execute create new Address query and get the confirmation
-                result = conn.executeUpdate(newAddressQuery);
-
-                //checking whether Address was created successfully
-                if(result > 0) {
-                  //getting the id of the new Address object
-                  String getAddressIdQuery = "SELECT addressId "
-                          + "FROM Address "
-                          + "WHERE street = '" + this.getAddress() + "'"
-                          + " AND unit = '" + this.getUnitNum() + "'"
-                          + " AND city = '" + this.getCity() + "'"
-                          + " AND province = '" + this.getProvince() + "'"
-                          + " AND postalCode = '" + this.getPostalCode() + "'";
-
-                  resultSet = conn.executeQuery(getAddressIdQuery);
-                  if(resultSet.next()) {
-                      addressID = Integer.parseInt(resultSet.getString("addressId"));
-                  }
-
-                  //create new Property object
-                  String newPropertyQuery = "INSERT INTO Property (address, customer, sqFootage, bathrooms, residents, hasPool) "
-                          + "VALUES (" + addressID + ", " + customerID + ", NULL, NULL, NULL, NULL)";
-
-                  //execute create new Property query here and get the result
-                  result = conn.executeUpdate(newPropertyQuery);
-
-                }
+                //create new Property object
+                preparedStatement = dbConnection.prepareStatement(createPropertyQuery);
+                preparedStatement.setInt(1, addressID);
+                preparedStatement.setInt(2, customerID);
+                //execute create new Property query here and get the result
+                result = preparedStatement.executeUpdate();
               }
             }
+          }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            //close the connection to the database
-            conn.closeConnection();
-        }
+          //close the connection to the database
+          conn.closeConnection();
+      }
 
-        return customerID;
+      return customerID;
     }
     
  // Get all customers
     public JSONObject getAllCustomers() throws NamingException {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         JSONObject jsonObject = new JSONObject();
+
+        String getAllCustomersQuery = "SELECT Customer.customerId, "
+                + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS name, "
+                + "Customer.email, Customer.cellPhone, Customer.homePhone, Customer.enbridgeNum "
+                + "FROM Customer";
         try {
-            //create a query string
-            String _query = "SELECT Customer.customerId, " 
-                    + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS name, "
-                    + "Customer.email, "
-                    + "Customer.cellPhone, "
-                    + "Customer.homePhone, "
-                    + "Customer.enbridgeNum "
-                    + "FROM Customer";
-            
-            //create a new Query object
+
+            //getting a database connection
             conn = new ConnectionManager();
-            
-            //execute the query statement and get the ResultSet
-            ResultSet resultSet = conn.executeQuery(_query);
-            
-            
+            dbConnection = conn.getDBConnection();
+            //creating a prepared statement
+            preparedStatement = dbConnection.prepareStatement(getAllCustomersQuery);
+            //executing the prepared statement and retrieving the ResultSet
+            ResultSet resultSet = preparedStatement.executeQuery();
+
             //creating an object to keep a collection of JSONs
             Collection<JSONObject> customers = new ArrayList<JSONObject>();
 
@@ -186,24 +207,23 @@ public class CustomerManager {
 
     // Get customer by Id
     public JSONObject getCustomerById(int id) throws NamingException {
-        JSONObject jsonObject = new JSONObject();
-        try {
-            //create a query string
-            String _query = "SELECT customerId, " 
-                    + "firstName, "
-                    + "lastName, "
-                    + "email, "
-                    + "homePhone, "
-                    + "cellPhone, "
-                    + "enbridgeNum "
-                    + "FROM Customer "
-                    + "WHERE customerId = " + id;
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
 
-            //create a new Query object
+        JSONObject jsonObject = new JSONObject();
+
+        String getcustomerQuery = "SELECT customerId, firstName, lastName, email, homePhone, cellPhone, enbridgeNum FROM Customer WHERE customerId = ? ";
+        try {
+
+            //getting a connection to the database
             conn = new ConnectionManager();
+            dbConnection = conn.getDBConnection();
+            //creating a prepared statement
+            preparedStatement = dbConnection.prepareStatement(getcustomerQuery);
+            preparedStatement.setInt(1, id);
 
             //execute the query statement and get the ResultSet
-            ResultSet resultSet = conn.executeQuery(_query);
+            ResultSet resultSet = preparedStatement.executeQuery();
 
             //creating a temporary JSON object and put there a data from the database
             JSONObject customer = new JSONObject();

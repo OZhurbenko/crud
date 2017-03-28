@@ -1,5 +1,7 @@
 package com.esit;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -48,36 +50,54 @@ public class EmployeeManager {
         this.setCellPhone(formParams.get("cellPhone").get(0));
         this.setPassword(formParams.get("password").get(0));
         this.setHireDate(formParams.get("hireDate").get(0));
-        this.setIsActive(formParams.get("isActive").get(0));
+        if(formParams.containsKey("isActive")) {
+            this.setIsActive(formParams.get("isActive").get(0));
+        }
     }
 
     //create a new Employee and return his id
     public int create() {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         int addressId = 0;
         int employeeId = 0;
         int result = 0;
+
+        //create new Address query
+        String newAddressQuery = "INSERT INTO Address (street, unit, city, province, postalCode) "
+                + "VALUES ( ?, ?, ?, ?, ?)";
+        String getAddressIdQuery = "SELECT addressId FROM Address "
+                + "WHERE street = ? AND unit = ? AND city = ? AND province = ? AND postalCode = ? ";
+        String createEmployeeQuery = "INSERT INTO Employee (firstName, lastName, email, homePhone, cellPhone, hireDate, isActive, password, role, addressId) "
+                + "VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String getEmployeeIdQuery = "SELECT employeeId FROM Employee WHERE email = ? ";
         try {
 
             conn = new ConnectionManager();
+            dbConnection = conn.getDBConnection();
 
-            //create new Address query
-            String newAddressQuery = "INSERT INTO Address (street, unit, city, province, postalCode) "
-                    + "VALUES ('" + this.getStreet() + "', '" + this.getUnitNum() + "', '" + this.getCity() 
-                    + "', '" + this.getProvince() + "', '" + this.getPostalCode() + "')";
+            //creating new Address object
+            preparedStatement = dbConnection.prepareStatement(newAddressQuery);
+            preparedStatement.setString(1, this.getStreet());
+            preparedStatement.setString(2, this.getUnitNum());
+            preparedStatement.setString(3, this.getCity());
+            preparedStatement.setString(4, this.getProvince());
+            preparedStatement.setString(5, this.getPostalCode());
+
             //execute create new Address query and get the confirmation
-            result = conn.executeUpdate(newAddressQuery);
+            result = preparedStatement.executeUpdate();
 
             //getting the id of the new Address object
-            String getAddressIdQuery = "SELECT addressId "
-                    + "FROM Address "
-                    + "WHERE street = '" + this.getStreet() + "'"
-                    + " AND unit = '" + this.getUnitNum() + "'"
-                    + " AND city = '" + this.getCity() + "'"
-                    + " AND province = '" + this.getProvince() + "'"
-                    + " AND postalCode = '" + this.getPostalCode() + "'";
+            preparedStatement = dbConnection.prepareStatement(getAddressIdQuery);
+            preparedStatement.setString(1, this.getStreet());
+            preparedStatement.setString(2, this.getUnitNum());
+            preparedStatement.setString(3, this.getCity());
+            preparedStatement.setString(4, this.getProvince());
+            preparedStatement.setString(5, this.getPostalCode());
 
-            ResultSet resultSet = conn.executeQuery(getAddressIdQuery);
-            resultSet = conn.executeQuery(getAddressIdQuery);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
             if(resultSet.next()) {
                 addressId = Integer.parseInt(resultSet.getString("addressId"));
             }
@@ -85,24 +105,27 @@ public class EmployeeManager {
             //check if Address object was created
             if(addressId > 0) {
               //create new Employee object
-              String newEmployeeQuery = "INSERT INTO Employee ("
-                      + "firstName, lastName, email, "
-                      + "homePhone, cellPhone, hireDate, "
-                      + "isActive, password, role, addressId) "
-                      + "VALUES('" + this.getFname() + "', '" + this.getLname() + "', '" + this.getEmail()
-                      + "', '" + this.getHomePhone() + "', '" + this.getCellPhone() + "', '" + this.getHireDate()
-                      + "', " + this.getIsActive() + ", '" + this.getPassword() + "', '" + this.getEmployeeType()
-                      + "', " + addressId + ")";
+              preparedStatement = dbConnection.prepareStatement(createEmployeeQuery);
+              preparedStatement.setString(1, this.getFname());
+              preparedStatement.setString(2, this.getLname());
+              preparedStatement.setString(3, this.getEmail());
+              preparedStatement.setString(4, this.getHomePhone());
+              preparedStatement.setString(5, this.getCellPhone());
+              preparedStatement.setString(6, this.getHireDate());
+              preparedStatement.setBoolean(7, Boolean.parseBoolean(this.getIsActive()));
+              preparedStatement.setString(8, this.getPassword());
+              preparedStatement.setString(9, this.getEmployeeType());
+              preparedStatement.setInt(10, addressId);
 
               //execute create new Property query here and get the result
-              result = conn.executeUpdate(newEmployeeQuery);
+              result = preparedStatement.executeUpdate();
 
               //getting the id of the new Employee object
-              String getEmployeeIdQuery = "SELECT employeeId "
-                      + "FROM Employee "
-                      + "WHERE email = '" + this.getEmail() + "'";
+              preparedStatement = dbConnection.prepareStatement(getEmployeeIdQuery);
+              preparedStatement.setString(1, this.getEmail());
 
-              resultSet = conn.executeQuery(getEmployeeIdQuery);
+              //execute getEmployeeId query and get the ResultSet
+              resultSet = preparedStatement.executeQuery();
 
               if(resultSet.next()) {
                   employeeId = Integer.parseInt(resultSet.getString("employeeId"));
@@ -120,49 +143,68 @@ public class EmployeeManager {
     }
 
     // Update employee
-    public int update(int id, MultivaluedMap<String, String> formParams) {
+    public int update(int id) {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         int result = 0;
+
+        //update employee with password query
+        String updateEmployeeQuery = "UPDATE Employee, Address "
+                + "SET Employee.firstName = ?, "
+                + "Employee.lastName = ?, Employee.email = ?, Employee.homePhone = ?, Employee.cellPhone = ?, "
+                + "Employee.hireDate = ?, Employee.role = ?, Employee.password = ?, "
+                + "Address.street = ?, Address.unit = ?, Address.city = ?, Address.province = ?, Address.postalCode = ? "
+                + "WHERE Employee.employeeId = ? AND Employee.addressId = Address.addressId ";
+        //update employee object without a password query
+        String updateEmployeeQuery2 = "UPDATE Employee, Address "
+                + "SET Employee.firstName = ?, "
+                + "Employee.lastName = ?, Employee.email = ?, Employee.homePhone = ?, Employee.cellPhone = ?, "
+                + "Employee.hireDate = ?, Employee.role = ?, "
+                + "Address.street = ?, Address.unit = ?, Address.city = ?, Address.province = ?, Address.postalCode = ? "
+                + "WHERE Employee.employeeId = ? AND Employee.addressId = Address.addressId ";
         try {
             //Creating a connection
             conn = new ConnectionManager();
+            dbConnection = conn.getDBConnection();
 
-            String fname = formParams.get("fname").get(0);
-            String lname = formParams.get("lname").get(0);
-            String email = formParams.get("email").get(0);
-            String homePhone = formParams.get("homePhone").get(0);
-            String cellPhone = formParams.get("cellPhone").get(0);
-            String hireDate = formParams.get("hireDate").get(0);
-            String employeeType = formParams.get("employeeType").get(0);
-
-            String street = formParams.get("street").get(0);
-            String unitNum = formParams.get("unitNum").get(0);
-            String city = formParams.get("city").get(0);
-            String province = formParams.get("province").get(0);
-            String postalCode = formParams.get("postalCode").get(0);
-
-            //password is optional
-            String password = formParams.get("password").get(0);
-
-            String updateQuery = "UPDATE Employee, Address "
-                                + "SET Employee.firstName = '" + fname + "', "
-                                + "Employee.lastName = '" + lname + "', "
-                                + "Employee.email = '" + email + "', "
-                                + "Employee.homePhone = '" + homePhone + "', "
-                                + "Employee.cellPhone = '" + cellPhone + "', "
-                                + "Employee.hireDate = '" + hireDate + "', "
-                                + "Employee.role = '" + employeeType + "', "
-                                + (password != null && !password.isEmpty() ?
-                                        "Employee.password = '" + password + "', " : "" )
-                                + "Address.street = '" + street + "', "
-                                + "Address.unit = '" + unitNum + "', "
-                                + "Address.city = '" + city + "', "
-                                + "Address.province = '" + province + "', "
-                                + "Address.postalCode = '" + postalCode + "' "
-                                + "WHERE Employee.employeeId = " + id + " "
-                                + "AND Employee.addressId = Address.addressId ";
+            if(password != null && !password.isEmpty()) {
+              //creating a PreparedStatement to update the Employee object
+              preparedStatement = dbConnection.prepareStatement(updateEmployeeQuery);
+              preparedStatement.setString(1, this.getFname());
+              preparedStatement.setString(2, this.getLname());
+              preparedStatement.setString(3, this.getEmail());
+              preparedStatement.setString(4, this.getHomePhone());
+              preparedStatement.setString(5, this.getCellPhone());
+              preparedStatement.setString(6, this.getHireDate());
+              preparedStatement.setString(7, this.getEmployeeType());
+              preparedStatement.setString(8, this.getPassword());
+              preparedStatement.setString(9, this.getStreet());
+              preparedStatement.setString(10, this.getUnitNum());
+              preparedStatement.setString(11, this.getCity());
+              preparedStatement.setString(12, this.getProvince());
+              preparedStatement.setString(13, this.getPostalCode());
+              preparedStatement.setInt(14, id);
+            } else {
+              //creating a PreparedStatement to update the Employee object
+              preparedStatement = dbConnection.prepareStatement(updateEmployeeQuery2);
+              preparedStatement.setString(1, this.getFname());
+              preparedStatement.setString(2, this.getLname());
+              preparedStatement.setString(3, this.getEmail());
+              preparedStatement.setString(4, this.getHomePhone());
+              preparedStatement.setString(5, this.getCellPhone());
+              preparedStatement.setString(6, this.getHireDate());
+              preparedStatement.setString(7, this.getEmployeeType());
+              preparedStatement.setString(8, this.getStreet());
+              preparedStatement.setString(9, this.getUnitNum());
+              preparedStatement.setString(10, this.getCity());
+              preparedStatement.setString(11, this.getProvince());
+              preparedStatement.setString(12, this.getPostalCode());
+              preparedStatement.setInt(13, id);
+            }
 
             //execute update sale query
-            result = conn.executeUpdate(updateQuery);
+            result = preparedStatement.executeUpdate();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -176,23 +218,22 @@ public class EmployeeManager {
 
     // Get all employees
     public JSONObject getAll() throws NamingException {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         JSONObject jsonObject = new JSONObject();
+        String getAllEmployeesQuery = "SELECT employeeId, CONCAT(firstName, ' ', lastName) AS name, role, "
+                + "email, cellPhone, hireDate, isActive FROM Employee";
         try {
-            //create a query string
-            String _query = "SELECT employeeId, "
-                    + "CONCAT(firstName, ' ', lastName) AS name, "
-                    + "role, "
-                    + "email, "
-                    + "cellPhone, "
-                    + "hireDate, "
-                    + "isActive "
-                    + "FROM Employee";
 
-            //create a new Query object
+            //getting a connection
             conn = new ConnectionManager();
+            dbConnection = conn.getDBConnection();
 
-            //execute the query statement and get the ResultSet
-            ResultSet resultSet = conn.executeQuery(_query);
+            //creating a preparedStatement
+            preparedStatement = dbConnection.prepareStatement(getAllEmployeesQuery);
+            //execute the prepared statement and get the ResultSet
+            ResultSet resultSet = preparedStatement.executeQuery();
 
             //creating an object to keep a collection of JSONs
             Collection<JSONObject> employees = new ArrayList<JSONObject>();
@@ -225,32 +266,29 @@ public class EmployeeManager {
     
  // Get employee by id
     public JSONObject getEmployeeById(int id) throws NamingException {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         JSONObject jsonObject = new JSONObject();
+
+        String getOneEmployeeQuery = "SELECT Employee.employeeId, Employee.firstName, Employee.lastName, Employee.role, Employee.email, "
+                + "Employee.homePhone, Employee.cellPhone, Employee.hireDate, Employee.isActive, Address.street, "
+                + "Address.unit, Address.city, Address.province, Address.postalCode "
+                + "FROM Employee "
+                + "JOIN Address ON Employee.addressId = Address.addressId "
+                + "WHERE employeeId = ? ";
         try {
-            //create a query string
-            String _query = "SELECT Employee.employeeId, "
-                    + "Employee.firstName, "
-                    + "Employee.lastName, "
-                    + "Employee.role, "
-                    + "Employee.email, "
-                    + "Employee.homePhone, "
-                    + "Employee.cellPhone, "
-                    + "Employee.hireDate, "
-                    + "Employee.isActive, "
-                    + "Address.street, "
-                    + "Address.unit, "
-                    + "Address.city, "
-                    + "Address.province, "
-                    + "Address.postalCode "
-                    + "FROM Employee "
-                    + "JOIN Address ON Employee.addressId = Address.addressId "
-                    + "WHERE employeeId = " + id;
 
-            //create a new Query object
+            //getting a connection
             conn = new ConnectionManager();
+            dbConnection = conn.getDBConnection();
 
-            //execute the query statement and get the ResultSet
-            ResultSet resultSet = conn.executeQuery(_query);
+            //creating a preparedStatement
+            preparedStatement = dbConnection.prepareStatement(getOneEmployeeQuery);
+            preparedStatement.setInt(1, id);
+
+            //execute the prepared statement and get the ResultSet
+            ResultSet resultSet = preparedStatement.executeQuery();
 
             //creating an object to keep a collection of JSONs
             JSONObject employee = new JSONObject();
@@ -287,26 +325,28 @@ public class EmployeeManager {
 
     // Get all employees
     public JSONObject getEmployeesByRole(String role) throws NamingException {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         role = role.toLowerCase().trim();
         JSONObject jsonObject = new JSONObject();
-        try {
-            //create a query string
-            String _query = "SELECT employeeId, "
-                    + "CONCAT(firstName, ' ', lastName) AS name, "
-                    + "role, "
-                    + "email, "
-                    + "cellPhone, "
-                    + "hireDate, "
-                    + "isActive "
-                    + "FROM Employee "
-                    + "WHERE role = '" + role + "' "
-                    + "AND isActive = true";
 
-            //create a new Query object
+        String getEmployeesByRoleQuery = "SELECT employeeId, CONCAT(firstName, ' ', lastName) AS name, "
+                + "role, email, cellPhone, hireDate, isActive FROM Employee "
+                + "WHERE role = ? AND isActive = ? ";
+        try {
+
+            //getting a connection
             conn = new ConnectionManager();
+            dbConnection = conn.getDBConnection();
+
+            //creating a preparedStatement
+            preparedStatement = dbConnection.prepareStatement(getEmployeesByRoleQuery);
+            preparedStatement.setString(1, role);
+            preparedStatement.setBoolean(2, true);
 
             //execute the query statement and get the ResultSet
-            ResultSet resultSet = conn.executeQuery(_query);
+            ResultSet resultSet = preparedStatement.executeQuery();
 
             //creating an object to keep a collection of JSONs
             Collection<JSONObject> employees = new ArrayList<JSONObject>();
@@ -338,29 +378,39 @@ public class EmployeeManager {
     }
 
     public JSONObject updateStatus(int employeeId) {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         JSONObject jsonObject = new JSONObject();
         int result = 0;
+
+        String updateStatusQuery = "UPDATE Employee SET isActive = ? WHERE employeeId = ? ";
+
         try {
             JSONObject employeeObj = this.getEmployeeById(employeeId);
 
             if(employeeObj.length() > 0) {
                 employeeObj = employeeObj.getJSONObject("employee");
-                //status can be either true or false, so we just toggle it
-                String updateQuery = "UPDATE Employee SET "
-                      + "isActive = " + !employeeObj.getBoolean("isActive")
-                      + " "
-                      + "WHERE employeeId = " + employeeId;
 
+                //getting a connection
                 conn = new ConnectionManager();
-                //execute new sale query
-                result = conn.executeUpdate(updateQuery);
+                dbConnection = conn.getDBConnection();
+
+                //creating a preparedStatement
+                preparedStatement = dbConnection.prepareStatement(updateStatusQuery);
+                //status can be either true or false, so we just toggle it
+                preparedStatement.setBoolean(1, !employeeObj.getBoolean("isActive"));
+                preparedStatement.setInt(2, employeeId);
+
+                //execute prepared statement
+                result = preparedStatement.executeUpdate();
 
                 jsonObject.put("updated", true);
                 //TODO validate update
             } else {
                 //TODO error handling
             }
-        } catch (NamingException e) {
+        } catch (NamingException | SQLException e) {
             e.printStackTrace();
         }
 

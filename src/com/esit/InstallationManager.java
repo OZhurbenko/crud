@@ -1,5 +1,7 @@
 package com.esit;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,27 +36,40 @@ public class InstallationManager {
 
     // Create installation
     public int create() {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         int result = 0;
+
+        //create new installation object
+        String createInstallationQuery = "INSERT INTO Installation (installer, sale, installationDateTime, status, folderId) "
+                + "VALUES( ?, ?, ?, ?, ?)";
+        String updateSaleQuery = "UPDATE Sale set status= ? WHERE saleId= ? ";
         try {
-            //Customer's create closed a connection, so we are creating a new one
+            //getting a database connection
             conn = new ConnectionManager();
+            dbConnection = conn.getDBConnection();
 
             //TODO validate salesId and installerId before creating a new installation
 
-            //create new installation object
-            String newInstallationQuery = "INSERT INTO Installation ("
-                    + "installer, sale, installationDateTime, status, folderId) "
-                    + "VALUES(" + this.getInstallerId() + ", " + this.getSaleId() + ", '"
-                    + this.getInstallationDateTime() + "', " + "'Scheduled', " + this.getFolderId() + ")";
+            //creating a prepared statement
+            preparedStatement = dbConnection.prepareStatement(createInstallationQuery);
+            preparedStatement.setInt(1, Integer.parseInt(this.getInstallerId()));
+            preparedStatement.setInt(2, Integer.parseInt(this.getSaleId()));
+            preparedStatement.setString(3, this.getInstallationDateTime());
+            preparedStatement.setString(4, "Scheduled");
+            preparedStatement.setInt(5, Integer.parseInt(this.getFolderId()));
 
             //execute new installation query
-            result = conn.executeUpdate(newInstallationQuery);
+            result = preparedStatement.executeUpdate();
 
-            String updateSaleQuery = "UPDATE Sale set status='Finished' "
-                    + "WHERE saleId=" + this.getSaleId();
+            //creating a prepared statement
+            preparedStatement = dbConnection.prepareStatement(updateSaleQuery);
+            preparedStatement.setString(1, "Finished");
+            preparedStatement.setInt(2, Integer.parseInt(this.getSaleId()));
 
             //execute update sale query
-            result = conn.executeUpdate(updateSaleQuery);
+            result = preparedStatement.executeUpdate();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,32 +83,41 @@ public class InstallationManager {
     
     // Update installation
     public int update(int id, MultivaluedMap<String, String> formParams) {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
+        //form data
+        String sqft = formParams.get("sqft").get(0);
+        String bathrooms = formParams.get("bathrooms").get(0);
+        String residents = formParams.get("residents").get(0);
+        String pool = formParams.get("pool").get(0);
+        String notes = formParams.get("notes").get(0);
+        String installedDate = formParams.get("installedDate").get(0);
+
         int result = 0;
+
+        String updateInstallationQuery = "UPDATE Property, Customer, Sale, Installation "
+                + "SET Property.sqFootage = ?, Property.bathrooms = ?, Property.residents = ?, "
+                + "Property.hasPool = ?, Installation.notes = ?, Installation.installationDateTime = ? "
+                + "WHERE Installation.installationId = ? AND Installation.sale = Sale.saleId "
+                + "AND Sale.customer = Customer.customerId AND Property.customer = Customer.customerId";
         try {
-            //Creating a connection
+            //getting a database connection
             conn = new ConnectionManager();
+            dbConnection = conn.getDBConnection();
 
-            String sqft = formParams.get("sqft").get(0);
-            String bathrooms = formParams.get("bathrooms").get(0);
-            String residents = formParams.get("residents").get(0);
-            String pool = formParams.get("pool").get(0);
-
-            String notes = formParams.get("notes").get(0);
-            String installedDate = formParams.get("installedDate").get(0);
-            String updateQuery = "UPDATE Property, Customer, Sale, Installation "
-                                + "SET Property.sqFootage = " + sqft + ", "
-                                + "Property.bathrooms = " + bathrooms + ", "
-                                + "Property.residents = " + residents + ", "
-                                + "Property.hasPool = " + pool + ", "
-                                + "Installation.notes = '" + notes + "', "
-                                + "Installation.installationDateTime = '" + installedDate + "' "
-                                + "WHERE Installation.installationId = " + id + " "
-                                + "AND Installation.sale = Sale.saleId "
-                                + "AND Sale.customer = Customer.customerId "
-                                + "AND Property.customer = Customer.customerId";
+            //creating a prepared statement
+            preparedStatement = dbConnection.prepareStatement(updateInstallationQuery);
+            preparedStatement.setInt(1, Integer.parseInt(sqft));
+            preparedStatement.setInt(2, Integer.parseInt(bathrooms));
+            preparedStatement.setInt(3, Integer.parseInt(residents));
+            preparedStatement.setBoolean(4, Boolean.parseBoolean(pool));
+            preparedStatement.setString(5, notes);
+            preparedStatement.setString(6, installedDate);
+            preparedStatement.setInt(7, id);
 
             //execute update sale query
-            result = conn.executeUpdate(updateQuery);
+            result = preparedStatement.executeUpdate();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -107,59 +131,68 @@ public class InstallationManager {
 
     // Get all installations
     public JSONObject getAllInstallations(int id) throws NamingException {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         JSONObject jsonObject = new JSONObject();
+        //query to select all installations related to the installer's id
+        String selectInstallersInstallations = "SELECT Installation.installationId, "
+                + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
+                + "Program.programName, "
+                + "Address.street, "
+                + "DATE(Installation.installationDateTime) AS installationDate, "
+                + "Installation.status "
+                + "FROM Installation "
+                + "JOIN Sale ON Installation.sale = Sale.saleId "
+                + "JOIN Employee ON Installation.installer = Employee.employeeId "
+                + "JOIN Program ON Sale.program = Program.programId "
+                + "JOIN Property ON Sale.customer = Property.customer "
+                + "JOIN Address ON Property.address = Address.addressId "
+                + "JOIN Customer ON Sale.customer = Customer.customerId "
+                + "WHERE Installation.installer = ? ";
+        //query to select all installations
+        String selectAllInstallations = "SELECT Installation.installationId, "
+                + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
+                + "Program.programName, "
+                + "Address.street, "
+                + "DATE(Installation.installationDateTime) AS installationDate, "
+                + "Installation.status "
+                + "FROM Installation "
+                + "JOIN Sale ON Installation.sale = Sale.saleId "
+                + "JOIN Employee ON Installation.installer = Employee.employeeId "
+                + "JOIN Program ON Sale.program = Program.programId "
+                + "JOIN Property ON Sale.customer = Property.customer "
+                + "JOIN Address ON Property.address = Address.addressId "
+                + "JOIN Customer ON Sale.customer = Customer.customerId";
         try {
-            String _query = "";
+
+            //retrieving the employee by id and check their role
             EmployeeManager employeeMngr = new EmployeeManager();
             JSONObject jsonObj = new JSONObject();
             jsonObj = employeeMngr.getEmployeeById(id);
             JSONObject employee = jsonObj.getJSONObject("employee");
             String role = employee.getString("role");
+
+            //getting a database connection
+            conn = new ConnectionManager();
+            dbConnection = conn.getDBConnection();
+
             if(role != null && !role.isEmpty()) {
                 if(role.equals("installer")) {
-                    //create a query string
-                    _query = "SELECT Installation.installationId, "
-                            + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
-                            + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
-                            + "Program.programName, "
-                            + "Address.street, "
-                            + "DATE(Installation.installationDateTime) AS installationDate, "
-                            + "Installation.status "
-                            + "FROM Installation "
-                            + "JOIN Sale ON Installation.sale = Sale.saleId "
-                            + "JOIN Employee ON Installation.installer = Employee.employeeId "
-                            + "JOIN Program ON Sale.program = Program.programId "
-                            + "JOIN Property ON Sale.customer = Property.customer "
-                            + "JOIN Address ON Property.address = Address.addressId "
-                            + "JOIN Customer ON Sale.customer = Customer.customerId "
-                            + "WHERE Installation.installer = " + id;
+                  //creating a prepared statement
+                  preparedStatement = dbConnection.prepareStatement(selectInstallersInstallations);
+                  preparedStatement.setInt(1, id);
                 }
                 else {
-                    //create a query string for managers and admins
-                    _query = "SELECT Installation.installationId, "
-                            + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
-                            + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
-                            + "Program.programName, "
-                            + "Address.street, "
-                            + "DATE(Installation.installationDateTime) AS installationDate, "
-                            + "Installation.status "
-                            + "FROM Installation "
-                            + "JOIN Sale ON Installation.sale = Sale.saleId "
-                            + "JOIN Employee ON Installation.installer = Employee.employeeId "
-                            + "JOIN Program ON Sale.program = Program.programId "
-                            + "JOIN Property ON Sale.customer = Property.customer "
-                            + "JOIN Address ON Property.address = Address.addressId "
-                            + "JOIN Customer ON Sale.customer = Customer.customerId";
+                  preparedStatement = dbConnection.prepareStatement(selectAllInstallations);
                 }
             }
-            
-            //create a new Query object
-            conn = new ConnectionManager();
-            
+
             //execute the query statement and get the ResultSet
-            ResultSet resultSet = conn.executeQuery(_query);
-            
-            
+            ResultSet resultSet = preparedStatement.executeQuery();
+
             //creating an object to keep a collection of JSONs
             Collection<JSONObject> installations = new ArrayList<JSONObject>();
 
@@ -190,36 +223,46 @@ public class InstallationManager {
     }
     
     public int setEnvelopeId(int id, MultivaluedMap<String, String> formParams) {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         int result = 0;
         String envelopeId = formParams.get("envelopeId").get(0);
         System.out.println(envelopeId);
+
+        //update envelope id query
+        String updateEnvelopeId = "UPDATE Installation SET envelopeId = ? WHERE installationId = ? ";
+        String getEnvelopeIdQuery = "SELECT installationId, envelopeId FROM Installation WHERE installationId = ? ";
         try {
 
-        	//getting a connection to the Database
+            //getting a database connection
             conn = new ConnectionManager();
-            
+            dbConnection = conn.getDBConnection();
+
             // Set the folderId
             this.setEnvelopeId(envelopeId);
             System.out.println("get: " + this.getEnvelopeId());
-            
-            //create new sale object
-            String newSaleQuery = "UPDATE Installation SET "
-                  + "envelopeId = "
-                  + "'" + this.getEnvelopeId() + "' "
-                  + "WHERE installationId = " + id;
+
+            //updating the envelope id in the Installation
+            //creating a prepared statement
+            preparedStatement = dbConnection.prepareStatement(updateEnvelopeId);
+            preparedStatement.setString(1, this.getEnvelopeId());
+            preparedStatement.setInt(2, id);
 
             //execute new sale query
-            result = conn.executeUpdate(newSaleQuery);
+            result = preparedStatement.executeUpdate();
 
-            //checking whether we created a Sale
-            String getSaleQuery = "SELECT installationId, envelopeId "
-                  + "FROM Installation "
-                  + "WHERE installationId = " + id;
+            //checking whether we updated an Installation
+            //creating a prepared statement
+            preparedStatement = dbConnection.prepareStatement(getEnvelopeIdQuery);
+            preparedStatement.setInt(1, id);
 
-            ResultSet resultSet = conn.executeQuery(getSaleQuery);
+            //executing the prepared statement and retrieving the ResultSet
+            ResultSet resultSet = preparedStatement.executeQuery();
+
             if(resultSet.next()) {
             	result = Integer.parseInt(resultSet.getString("installationId"));
-          }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -232,59 +275,73 @@ public class InstallationManager {
 
     // Get all scheduled installations
     public JSONObject getAllScheduled(int id) throws NamingException {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         JSONObject jsonObject = new JSONObject();
+
+        //query to select all scheduled installations for an installer
+        String getAllInstallersScheduledInstallations = "SELECT Installation.installationId, "
+                + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
+                + "Program.programName, "
+                + "Address.street, "
+                + "Installation.installationDateTime, "
+                + "Installation.status, "
+                + "Installation.folderId "
+                + "FROM Installation "
+                + "JOIN Sale ON Installation.sale = Sale.saleId "
+                + "JOIN Employee ON Installation.installer = Employee.employeeId "
+                + "JOIN Program ON Sale.program = Program.programId "
+                + "JOIN Property ON Sale.customer = Property.customer "
+                + "JOIN Address ON Property.address = Address.addressId "
+                + "JOIN Customer ON Sale.customer = Customer.customerId "
+                + "WHERE Installation.status = ? "
+                + "AND Installation.installer = ? ";
+        //query to get all scheduled installations
+        String getAllInstallations = "SELECT Installation.installationId, "
+                + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
+                + "Program.programName, "
+                + "Address.street, "
+                + "Installation.installationDateTime, "
+                + "Installation.status, "
+                + "Installation.folderId "
+                + "FROM Installation "
+                + "JOIN Sale ON Installation.sale = Sale.saleId "
+                + "JOIN Employee ON Installation.installer = Employee.employeeId "
+                + "JOIN Program ON Sale.program = Program.programId "
+                + "JOIN Property ON Sale.customer = Property.customer "
+                + "JOIN Address ON Property.address = Address.addressId "
+                + "JOIN Customer ON Sale.customer = Customer.customerId "
+                + "WHERE Installation.status = ? ";
         try {
-            String _query = "";
+            //getting the employee object and checking their role
             EmployeeManager employeeMngr = new EmployeeManager();
             JSONObject jsonObj = new JSONObject();
             jsonObj = employeeMngr.getEmployeeById(id);
             JSONObject employee = jsonObj.getJSONObject("employee");
             String role = employee.getString("role");
+
+            //getting a database connection
+            conn = new ConnectionManager();
+            dbConnection = conn.getDBConnection();
+
             if(role != null && !role.isEmpty()) {
                 if(role.equals("installer")) {
-                    //create a query string
-                    _query = "SELECT Installation.installationId, "
-                            + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
-                            + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
-                            + "Program.programName, "
-                            + "Address.street, "
-                            + "Installation.installationDateTime, "
-                            + "Installation.status, "
-                            + "Installation.folderId "
-                            + "FROM Installation "
-                            + "JOIN Sale ON Installation.sale = Sale.saleId "
-                            + "JOIN Employee ON Installation.installer = Employee.employeeId "
-                            + "JOIN Program ON Sale.program = Program.programId "
-                            + "JOIN Property ON Sale.customer = Property.customer "
-                            + "JOIN Address ON Property.address = Address.addressId "
-                            + "JOIN Customer ON Sale.customer = Customer.customerId "
-                            + "WHERE Installation.status = 'Scheduled' "
-                            + "AND Installation.installer = " + id;
+                    //creating a prepared statement
+                    preparedStatement = dbConnection.prepareStatement(getAllInstallersScheduledInstallations);
+                    preparedStatement.setString(1, "Scheduled");
+                    preparedStatement.setInt(2, id);
                 } else {
-                    _query = "SELECT Installation.installationId, "
-                            + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
-                            + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
-                            + "Program.programName, "
-                            + "Address.street, "
-                            + "Installation.installationDateTime, "
-                            + "Installation.status, "
-                            + "Installation.folderId "
-                            + "FROM Installation "
-                            + "JOIN Sale ON Installation.sale = Sale.saleId "
-                            + "JOIN Employee ON Installation.installer = Employee.employeeId "
-                            + "JOIN Program ON Sale.program = Program.programId "
-                            + "JOIN Property ON Sale.customer = Property.customer "
-                            + "JOIN Address ON Property.address = Address.addressId "
-                            + "JOIN Customer ON Sale.customer = Customer.customerId "
-                            + "WHERE Installation.status = 'Scheduled'";
+                    //creating a prepared statement
+                    preparedStatement = dbConnection.prepareStatement(getAllInstallations);
+                    preparedStatement.setString(1, "Scheduled");
                 }
             }
 
-            //create a new Query object
-            conn = new ConnectionManager();
-
             //execute the query statement and get the ResultSet
-            ResultSet resultSet = conn.executeQuery(_query);
+            ResultSet resultSet = preparedStatement.executeQuery();
 
             //creating an object to keep a collection of JSONs
             Collection<JSONObject> installations = new ArrayList<JSONObject>();
@@ -318,31 +375,18 @@ public class InstallationManager {
     
     // Get installation by Id
     public JSONObject getInstallationById(int id) throws NamingException {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         JSONObject jsonObject = new JSONObject();
-        try {
-            //create a query string
-            String _query = "SELECT Installation.installationId, " 
-                + "Customer.firstName, "
-                + "Customer.lastName, "
+
+        String selectInstallationByIdQuery = "SELECT Installation.installationId, Customer.firstName, Customer.lastName, "
                 + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS installerName, "
-                + "Employee.employeeId, "
-                + "Employee.email AS installerEmail, "
-                + "Program.programName, "
-                + "Address.street, "
-                + "Address.unit, "
-                + "Address.city, "
-                + "Address.province, "
-                + "Address.postalCode, "
-                + "Customer.enbridgeNum, "
-                + "Customer.email, "
-                + "Customer.homePhone, "
-                + "Customer.cellPhone, "
-                + "Property.sqFootage , "
-                + "Property.bathrooms , "
-                + "Property.residents , "
-                + "Property.hasPool, "
-                + "Installation.installationDateTime, "
-                + "Installation.status "
+                + "Employee.employeeId, Employee.email AS installerEmail, Program.programName, "
+                + "Address.street, Address.unit, Address.city, Address.province, Address.postalCode, "
+                + "Customer.enbridgeNum, Customer.email, Customer.homePhone, Customer.cellPhone, "
+                + "Property.sqFootage , Property.bathrooms , Property.residents , Property.hasPool, "
+                + "Installation.installationDateTime, Installation.status "
                 + "FROM Installation "
                 + "JOIN Sale ON Installation.sale = Sale.saleId "
                 + "JOIN Employee ON Installation.installer = Employee.employeeId "
@@ -350,14 +394,20 @@ public class InstallationManager {
                 + "JOIN Property ON Sale.customer = Property.customer "
                 + "JOIN Address ON Property.address = Address.addressId "
                 + "JOIN Customer ON Sale.customer = Customer.customerId "
-                + "WHERE Installation.installationId = " + id;
+                + "WHERE Installation.installationId = ? ";
+        try {
 
-            //create a new Query object
+            //getting a database connection
             conn = new ConnectionManager();
-            
+            dbConnection = conn.getDBConnection();
+
+            //creating a prepared statement
+            preparedStatement = dbConnection.prepareStatement(selectInstallationByIdQuery);
+            preparedStatement.setInt(1, id);
+
             //execute the query statement and get the ResultSet
-            ResultSet resultSet = conn.executeQuery(_query);
-            
+            ResultSet resultSet = preparedStatement.executeQuery();
+
             //creating a temporary JSON object and put there a data from the database
             JSONObject installation = new JSONObject();
 
@@ -386,7 +436,7 @@ public class InstallationManager {
               installation.put("hasPool", resultSet.getString("hasPool"));
               installation.put("installationDateTime", resultSet.getString("installationDateTime"));
             }
-            
+
             //creating a final JSON object
             jsonObject.put("installation", installation);
 
@@ -398,35 +448,43 @@ public class InstallationManager {
           }
         return jsonObject;
     }
-    
+
     public int setInstallationStatus(int id, MultivaluedMap<String, String> formParams) {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         int result = 0;
         String status = formParams.get("status").get(0);
         System.out.println(status);
+
+        //update installation status query
+        String updateInstallationStatusQuery = "UPDATE Installation SET status = ? WHERE installationId = ? ";
+        //select installation status query
+        String selectInstallationStatusQuery = "SELECT installationId, status FROM Installation WHERE installationId = ? ";
         try {
 
-        	//getting a connection to the Database
+            //getting a database connection
             conn = new ConnectionManager();
+            dbConnection = conn.getDBConnection();
             
             // Set the folderId
             this.setStatus(status);
             System.out.println("get: " + this.getStatus());
             
-            //create new sale object
-            String newSaleQuery = "UPDATE Installation SET "
-                  + "status = "
-                  + "'" + this.getStatus() + "' "
-                  + "WHERE installationId = " + id;
+            //creating a prepared statement
+            preparedStatement = dbConnection.prepareStatement(updateInstallationStatusQuery);
+            preparedStatement.setString(1, this.getStatus());
+            preparedStatement.setInt(2, id);
 
             //execute new sale query
-            result = conn.executeUpdate(newSaleQuery);
+            result = preparedStatement.executeUpdate();
 
-            //checking whether we created a Sale
-            String getSaleQuery = "SELECT installationId, status "
-                  + "FROM Installation "
-                  + "WHERE installationId = " + id;
+            //checking whether we updated the status
+            preparedStatement = dbConnection.prepareStatement(selectInstallationStatusQuery);
+            preparedStatement.setInt(1, id);
 
-            ResultSet resultSet = conn.executeQuery(getSaleQuery);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
             if(resultSet.next() && resultSet.getString("status").equals(status)) {
             	result = Integer.parseInt(resultSet.getString("installationId"));
             } else {

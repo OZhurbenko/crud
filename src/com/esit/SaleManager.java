@@ -1,6 +1,8 @@
 package com.esit;
 
 import java.sql.ResultSet;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -52,35 +54,35 @@ public class SaleManager {
     
     public int setSaleStatus(int id, MultivaluedMap<String, String> formParams) {
         int result = 0;
-        String status = formParams.get("status").get(0);
-        System.out.println(status);
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
+        String updateSaleQuery = "UPDATE Sale SET status = ? WHERE saleId = ?";
+        String getSaleQuery = "SELECT saleId, status FROM Sale WHERE saleId = ?";
         try {
 
         	//getting a connection to the Database
             conn = new ConnectionManager();
-            
-            // Set the folderId
+            dbConnection = conn.getDBConnection();
+
+            //update Sale status query
+            preparedStatement = dbConnection.prepareStatement(updateSaleQuery);
+            preparedStatement.setString(1, formParams.get("status").get(0));
+            preparedStatement.setInt(2, id);
+            preparedStatement.executeUpdate();
+
+            //select Sale status query
+            preparedStatement = dbConnection.prepareStatement(getSaleQuery);
+            preparedStatement.setInt(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            String status = formParams.get("status").get(0);
             this.setStatus(status);
-            System.out.println("get: " + this.getStatus());
-            
-            //create new sale object
-            String newSaleQuery = "UPDATE Sale SET "
-                  + "status = "
-                  + "'" + this.getStatus() + "' "
-                  + "WHERE saleId = " + id;
 
-            //execute new sale query
-            result = conn.executeUpdate(newSaleQuery);
-
-            //checking whether we created a Sale
-            String getSaleQuery = "SELECT saleId, status "
-                  + "FROM Sale "
-                  + "WHERE saleId = " + id;
-
-            ResultSet resultSet = conn.executeQuery(getSaleQuery);
             if(resultSet.next() && resultSet.getString("status").equals(status)) {
             	result = Integer.parseInt(resultSet.getString("saleId"));
             } else {
+                System.out.println("RESULT: " + result);
             	result = 0;
             }
         } catch (Exception e) {
@@ -94,28 +96,31 @@ public class SaleManager {
     }
 
     public JSONObject getAllCompleted() throws NamingException {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         JSONObject jsonObject = new JSONObject();
+
+        String selectSalesQuery = "SELECT Sale.saleId, CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                + "Program.programName, Address.street, Sale.installationDateTime, Sale.status, Sale.folderId "
+                + "FROM Sale "
+                + "JOIN Customer ON Sale.customer = Customer.customerId "
+                + "JOIN Program ON Sale.program = Program.programId "
+                + "JOIN Property ON Sale.customer = Property.customer "
+                + "JOIN Address ON Property.address = Address.addressId "
+                + "WHERE status = ? ";
+
         try {
-            //create a query string
-            String _query = "SELECT Sale.saleId, "
-                    + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
-                    + "Program.programName, "
-                    + "Address.street, "
-                    + "Sale.installationDateTime, "
-                    + "Sale.status, "
-                    + "Sale.folderId "
-                    + "FROM Sale "
-                    + "JOIN Customer ON Sale.customer = Customer.customerId "
-                    + "JOIN Program ON Sale.program = Program.programId "
-                    + "JOIN Property ON Sale.customer = Property.customer "
-                    + "JOIN Address ON Property.address = Address.addressId "
-                    + "WHERE status = 'Paid'";
-
-            //create a new Query object
+            //getting a connection to the Database
             conn = new ConnectionManager();
+            dbConnection = conn.getDBConnection();
 
-            //execute the query statement and get the ResultSet
-            ResultSet resultSet = conn.executeQuery(_query);
+            //creating and executing a PreparedStatement object
+            preparedStatement = dbConnection.prepareStatement(selectSalesQuery);
+            preparedStatement.setString(1, "Paid");
+
+            //execute the prepared statement and retrieve the ResultSet
+            ResultSet resultSet = preparedStatement.executeQuery();
 
             //creating an object to keep a collection of JSONs
             Collection<JSONObject> sales = new ArrayList<JSONObject>();
@@ -147,11 +152,21 @@ public class SaleManager {
     }
 
     public int create() {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         int result = 0;
         int customerID = 0;
         int salesRepId = 0;
         int programType = 0;
         int saleId = 0;
+
+        String getSalesRepIdQuery = "SELECT employeeId FROM Employee WHERE employeeId = ? AND role = ? ";
+        String getProgramTypeQuery = "SELECT programId FROM Program WHERE programId = ? ";
+        String newSaleQuery = "INSERT INTO Sale (customer, salesRepId, program, rentalAgreement, PADForm, dateSigned, installationDateTime, notes, status) "
+                + "VALUES( ?, ?, ?, NULL, NULL, ?, ?, ?, ?)";
+        String getSaleQuery = "SELECT saleId FROM Sale WHERE customer = ? AND salesRepId = ? "
+                + "AND program = ? AND dateSigned = ? AND installationDateTime = ? AND status = ?";
         try {
 
             //getting a connection to the Database
@@ -165,53 +180,53 @@ public class SaleManager {
 
                 //Customer's create closed a connection, so we are creating a new one
                 conn = new ConnectionManager();
+                dbConnection = conn.getDBConnection();
 
-                //validating salesRepId
-                String getSalesRepIdQuery = "SELECT employeeId "
-                        + "FROM Employee "
-                        + "WHERE employeeId = " + this.getSalesRepId() + " "
-                        + "AND role = 'salesperson'";
+                //validating sales rep id
+                preparedStatement = dbConnection.prepareStatement(getSalesRepIdQuery);
+                preparedStatement.setInt(1, Integer.parseInt(this.getSalesRepId()));
+                preparedStatement.setString(2, "salesperson");
 
-                ResultSet resultSet = conn.executeQuery(getSalesRepIdQuery);
+                ResultSet resultSet = preparedStatement.executeQuery();
+
                 if(resultSet.next()) {
                   salesRepId = Integer.parseInt(resultSet.getString("employeeId"));
                 }
 
                 //validating programType
-                String getProgramTypeQuery = "SELECT programId "
-                        + "FROM Program "
-                        + "WHERE programId = " + this.getProgramType();
+                preparedStatement = dbConnection.prepareStatement(getProgramTypeQuery);
+                preparedStatement.setInt(1, Integer.parseInt(this.getProgramType()));
+                resultSet = preparedStatement.executeQuery();
 
-                resultSet = conn.executeQuery(getProgramTypeQuery);
                 if(resultSet.next()) {
                   programType = Integer.parseInt(resultSet.getString("programId"));
                 }
 
                 //checking if we had valid salesRepId and programType before creating a new Sale
                 if(salesRepId > 0 && programType > 0) {
-                  //create new sale object
-                  String newSaleQuery = "INSERT INTO Sale ("
-                          + "customer, salesRepId, program, "
-                          + "rentalAgreement, PADForm, dateSigned, "
-                          + "installationDateTime, notes, status) "
-                          + "VALUES(" + customerID + ", " + this.getSalesRepId() + ", " + this.getProgramType()
-                          + ", NULL, NULL, '" + this.getDateSigned() + "', '"
-                          + this.getInstallationDateTime() + "', '" + this.getNotes() + "', " + "'Created')";
+                  //creating a new sale object
+                  preparedStatement = dbConnection.prepareStatement(newSaleQuery);
+                  preparedStatement.setInt(1, customerID);
+                  preparedStatement.setInt(2, Integer.parseInt(this.getSalesRepId()));
+                  preparedStatement.setInt(3, Integer.parseInt(this.getProgramType()));
+                  preparedStatement.setString(4, this.getDateSigned());
+                  preparedStatement.setString(5, this.getInstallationDateTime());
+                  preparedStatement.setString(6, this.getNotes());
+                  preparedStatement.setString(7, "Created");
 
                   //execute new sale query
-                  result = conn.executeUpdate(newSaleQuery);
+                  result = preparedStatement.executeUpdate();
 
                   //checking whether we created a Sale
-                  String getSaleQuery = "SELECT saleId "
-                          + "FROM Sale "
-                          + "WHERE customer = " + customerID + " "
-                          + "AND salesRepId = " + this.getSalesRepId() + " "
-                          + "AND program = " + this.getProgramType() + " "
-                          + "AND dateSigned = '" + this.getDateSigned() + "' "
-                          + "AND installationDateTime = '" + this.getInstallationDateTime() + "' "
-                          + "AND status = 'Created'";
+                  preparedStatement = dbConnection.prepareStatement(getSaleQuery);
+                  preparedStatement.setInt(1, customerID);
+                  preparedStatement.setInt(2, Integer.parseInt(this.getSalesRepId()));
+                  preparedStatement.setInt(3, Integer.parseInt(this.getProgramType()));
+                  preparedStatement.setString(4, this.getDateSigned());
+                  preparedStatement.setString(5, this.getInstallationDateTime());
+                  preparedStatement.setString(6, "Created");
+                  resultSet = preparedStatement.executeQuery();
 
-                  resultSet = conn.executeQuery(getSaleQuery);
                   if(resultSet.next()) {
                     saleId = Integer.parseInt(resultSet.getString("saleId"));
                   }
@@ -229,35 +244,39 @@ public class SaleManager {
     
     public int putEnvelopeId(int id, MultivaluedMap<String, String> formParams) {
         int result = 0;
-        String envelopeId = formParams.get("envelopeId").get(0);
-        System.out.println(envelopeId);
-        try {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
 
-        	//getting a connection to the Database
+        //update sale query
+        String updateSaleQuery = "UPDATE Sale SET envelopeId = ? WHERE saleId = ? ";
+        //select Sale query
+        String selectSaleQuery = "SELECT saleId, envelopeId FROM Sale WHERE saleId = ? ";
+
+        try {
+            String envelopeId = formParams.get("envelopeId").get(0);
+
+            //getting a connection to the Database
             conn = new ConnectionManager();
-            
+            dbConnection = conn.getDBConnection();
+
+            //update Sale query
+            preparedStatement = dbConnection.prepareStatement(updateSaleQuery);
+            preparedStatement.setString(1, formParams.get("envelopeId").get(0));
+            preparedStatement.setInt(2, id);
+            preparedStatement.executeUpdate();
+
             // Set the folderId
             this.setEnvelopeId(envelopeId);
-            System.out.println("get: " + this.getEnvelopeId());
-            
-            //create new sale object
-            String newSaleQuery = "UPDATE Sale SET "
-                  + "envelopeId = "
-                  + "'" + this.getEnvelopeId() + "' "
-                  + "WHERE saleId = " + id;
-
-            //execute new sale query
-            result = conn.executeUpdate(newSaleQuery);
+            System.out.println("envelopeId: " + this.getEnvelopeId());
 
             //checking whether we created a Sale
-            String getSaleQuery = "SELECT saleId, envelopeId "
-                  + "FROM Sale "
-                  + "WHERE saleId = " + id;
-
-            ResultSet resultSet = conn.executeQuery(getSaleQuery);
+            preparedStatement = dbConnection.prepareStatement(selectSaleQuery);
+            preparedStatement.setInt(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
             if(resultSet.next()) {
             	result = Integer.parseInt(resultSet.getString("saleId"));
-          }
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -267,35 +286,40 @@ public class SaleManager {
 
         return result;
     }
-    
+
     public int setFolderId(int id, MultivaluedMap<String, String> formParams) {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
         int result = 0;
-        String folderId = formParams.get("folderId").get(0);
-        System.out.println(folderId);
+
+        //update sale query
+        String updateSaleQuery = "UPDATE Sale SET folderId = ? WHERE saleId = ? ";
+        //get one sale query
+        String getSaleQuery = "SELECT saleId, folderId FROM Sale WHERE saleId = ? ";
         try {
 
         	//getting a connection to the Database
             conn = new ConnectionManager();
-            
-            // Set the folderId
-            this.setFolderId(folderId);
-            System.out.println("get: " + this.getFolderId());
-            
-            //create new sale object
-            String newSaleQuery = "UPDATE Sale SET "
-                  + "folderId = "
-                  + "'" + this.getFolderId() + "' "
-                  + "WHERE saleId = " + id;
+            dbConnection = conn.getDBConnection();
 
-            //execute new sale query
-            result = conn.executeUpdate(newSaleQuery);
+            // Set the folderId
+            this.setFolderId(formParams.get("folderId").get(0));
+            String folderId = this.getFolderId();
+            System.out.println("get: " + this.getFolderId());
+
+            //update sale object
+            preparedStatement = dbConnection.prepareStatement(updateSaleQuery);
+            preparedStatement.setString(1, this.getFolderId());
+            preparedStatement.setInt(2, id);
+
+            //execute update sale query
+            result = preparedStatement.executeUpdate();
 
             //checking whether we created a Sale
-            String getSaleQuery = "SELECT saleId, folderId "
-                  + "FROM Sale "
-                  + "WHERE saleId = " + id;
+            preparedStatement = dbConnection.prepareStatement(getSaleQuery);
+            preparedStatement.setInt(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
 
-            ResultSet resultSet = conn.executeQuery(getSaleQuery);
             if(resultSet.next()) {
                 if (resultSet.getString("folderId") == folderId) {
                     result = Integer.parseInt(resultSet.getString("saleId"));
@@ -313,50 +337,50 @@ public class SaleManager {
     
     // Get all sales
     public JSONObject getAllSales(int id) throws NamingException {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
         JSONObject jsonObject = new JSONObject();
+        String getAllSalesPersonSalesQuery =  "SELECT Sale.saleId, CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                + "Program.programName, Address.street, Sale.dateSigned, Sale.status FROM Sale "
+                + "JOIN Customer ON Sale.customer = Customer.customerId "
+                + "JOIN Program ON Sale.program = Program.programId "
+                + "JOIN Property ON Sale.customer = Property.customer "
+                + "JOIN Address ON Property.address = Address.addressId "
+                + "WHERE Sale.salesRepId = ? ";
+        String getAllSalesQuery =  "SELECT Sale.saleId, CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
+                + "Program.programName, Address.street, Sale.dateSigned, Sale.status FROM Sale "
+                + "JOIN Customer ON Sale.customer = Customer.customerId "
+                + "JOIN Program ON Sale.program = Program.programId "
+                + "JOIN Property ON Sale.customer = Property.customer "
+                + "JOIN Address ON Property.address = Address.addressId";
         try {
-            String _query = "";
+
+            //creating a new EmployeeManager obj, getting an employee json and retrieve the employee's role
             EmployeeManager employeeMngr = new EmployeeManager();
             JSONObject jsonObj = new JSONObject();
             jsonObj = employeeMngr.getEmployeeById(id);
             JSONObject employee = jsonObj.getJSONObject("employee");
             String role = employee.getString("role");
-            
+
+            //getting a connection to the Database
+            conn = new ConnectionManager();
+            dbConnection = conn.getDBConnection();
+
+            //validating the role
             if(role != null && !role.isEmpty()) {
+                //if the role equals "salesperson", then we return only sales related to that employee
                 if(role.equals("salesperson")) {
-                    //create a query string
-                    _query = "SELECT Sale.saleId, "
-                            + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
-                            + "Program.programName, "
-                            + "Address.street, "
-                            + "Sale.dateSigned, "
-                            + "Sale.status "
-                            + "FROM Sale "
-                            + "JOIN Customer ON Sale.customer = Customer.customerId "
-                            + "JOIN Program ON Sale.program = Program.programId "
-                            + "JOIN Property ON Sale.customer = Property.customer "
-                            + "JOIN Address ON Property.address = Address.addressId "
-                            + "WHERE Sale.salesRepId = " + id;
+                  preparedStatement = dbConnection.prepareStatement(getAllSalesPersonSalesQuery);
+                  preparedStatement.setInt(1, id);
+                //any role other than "salesperson" means that we return all the sales from the database
                 } else {
-                  //create a query string
-                    _query = "SELECT Sale.saleId, "
-                            + "CONCAT(Customer.firstName, ' ', Customer.lastName) AS customerName, "
-                            + "Program.programName, "
-                            + "Address.street, "
-                            + "Sale.dateSigned, "
-                            + "Sale.status "
-                            + "FROM Sale "
-                            + "JOIN Customer ON Sale.customer = Customer.customerId "
-                            + "JOIN Program ON Sale.program = Program.programId "
-                            + "JOIN Property ON Sale.customer = Property.customer "
-                            + "JOIN Address ON Property.address = Address.addressId";
+                  preparedStatement = dbConnection.prepareStatement(getAllSalesQuery);
                 }
             }
-            //create a new Query object
-            conn = new ConnectionManager();
-            
+
             //execute the query statement and get the ResultSet
-            ResultSet resultSet = conn.executeQuery(_query);
+            ResultSet resultSet = preparedStatement.executeQuery();
 
             //creating an object to keep a collection of JSONs
             Collection<JSONObject> sales = new ArrayList<JSONObject>();
@@ -388,45 +412,34 @@ public class SaleManager {
 
     // Get sale by Id
     public JSONObject getSaleById(int id) throws NamingException {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
+        //final json object
         JSONObject jsonObject = new JSONObject();
+
+        //get one sale query
+        String getOneSaleQuery = "SELECT Sale.saleId, Customer.firstName, Customer.lastName, Program.programName, Program.programId, "
+                + "Address.street, Address.unit, Address.city, Address.province, Address.postalCode, "
+                + "Customer.enbridgeNum, Customer.email, Customer.homePhone, Customer.cellPhone, "
+                + "Sale.installationDateTime, Sale.notes, Sale.folderId, Sale.envelopeId, Sale.status, Sale.dateSigned, Sale.salesRepId, "
+                + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS salesRepName "
+                + "FROM Sale "
+                + "JOIN Employee ON Sale.salesRepId = Employee.employeeId "
+                + "JOIN Customer ON Sale.customer = Customer.customerId "
+                + "JOIN Program ON Sale.program = Program.programId "
+                + "JOIN Property ON Sale.customer = Property.customer "
+                + "JOIN Address ON Property.address = Address.addressId "
+                + "WHERE Sale.saleId = ? ";
         try {
-            //create a query string
-            String _query = "SELECT Sale.saleId, " 
-                    + "Customer.firstName, "
-                    + "Customer.lastName, "
-                    + "Program.programName, "
-                    + "Address.street, "
-                    + "Address.unit, "
-                    + "Address.city, "
-                    + "Address.province, "
-                    + "Address.postalCode, "
-                    + "Customer.enbridgeNum, "
-                    + "Customer.email, "
-                    + "Customer.homePhone, "
-                    + "Customer.cellPhone, "
-                    + "Program.programId, "
-                    + "Sale.installationDateTime, "
-                    + "Sale.notes, "
-                    + "Sale.folderId, "
-                    + "Sale.envelopeId, "
-                    + "Sale.status, "
-                    + "Sale.dateSigned, "
-                    + "Sale.salesRepId, "
-                    + "CONCAT(Employee.firstName, ' ', Employee.lastName) AS salesRepName "
-                    + "FROM Sale "
-                    + "JOIN Employee ON Sale.salesRepId = Employee.employeeId "
-                    + "JOIN Customer ON Sale.customer = Customer.customerId "
-                    + "JOIN Program ON Sale.program = Program.programId "
-                    + "JOIN Property ON Sale.customer = Property.customer "
-                    + "JOIN Address ON Property.address = Address.addressId "
-                    + "WHERE Sale.saleId = " + id;
-            
+
             //create a new Query object
             conn = new ConnectionManager();
-            
-            //execute the query statement and get the ResultSet
-            ResultSet resultSet = conn.executeQuery(_query);
-            
+            dbConnection = conn.getDBConnection();
+            preparedStatement = dbConnection.prepareStatement(getOneSaleQuery);
+            preparedStatement.setInt(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
             //creating a temporary JSON object and put there a data from the database
             JSONObject sale = new JSONObject();
 
@@ -455,7 +468,7 @@ public class SaleManager {
               sale.put("envelopeId", resultSet.getString("envelopeId"));
               sale.put("dateSigned", resultSet.getString("dateSigned"));
             }
-            
+
             //creating a final JSON object
             jsonObject.put("sale", sale);
 
@@ -467,24 +480,30 @@ public class SaleManager {
           }
         return jsonObject;
     }
+
     
     // Get sale by Id
     public JSONObject getFolderIdByEnvelopeId(String id) throws NamingException {
+        Connection dbConnection = null;
+        PreparedStatement preparedStatement = null;
+
+        //final json object to return
         JSONObject jsonObject = new JSONObject();
+
+        //select folderId queries
+        String selectSaleFolderIdQuery = "SELECT saleId, folderId FROM Sale WHERE envelopeId LIKE ? ";
+        String selectInstallationFolderId = "SELECT sale, folderId FROM Installation WHERE envelopeId LIKE ?";
         try {
-            //create a query string
-            String _query = "SELECT saleId, " 
-                    + "folderId "
-                    + "FROM Sale " 
-                    + "WHERE envelopeId LIKE '" + id + "'";
             
             //create a new Query object
             conn = new ConnectionManager();
-            
+            dbConnection = conn.getDBConnection();
+            preparedStatement = dbConnection.prepareStatement(selectSaleFolderIdQuery);
+            preparedStatement.setString(1, id);
             //execute the query statement and get the ResultSet
-            ResultSet resultSet = conn.executeQuery(_query);
-            
-            //creating a temporary JSON object and put there a data from the database
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            //creating a temporary JSON object for the data from the database
             JSONObject sale = new JSONObject();
 
             // If there are results fill the jsonObject
@@ -494,15 +513,11 @@ public class SaleManager {
               sale.put("folderId", folderId == null || folderId.isEmpty() ? "0" : folderId);
             } else {
               // See if envelopeId exists in Installation
-              // Create a new query string
-              String _query2 = "SELECT sale, " 
-                    + "folderId "
-                    + "FROM Installation " 
-                    + "WHERE envelopeId LIKE '" + id + "'";
-                
+              preparedStatement = dbConnection.prepareStatement(selectInstallationFolderId);
+              preparedStatement.setString(1, id);
               // Execute the query statement and get the ResultSet
-              ResultSet resultSet2 = conn.executeQuery(_query2); 
-              
+              ResultSet resultSet2 = preparedStatement.executeQuery();
+
               // If there are results fill the jsonObject
               if (resultSet2.next()) {
                   sale.put("salesNumber", resultSet2.getString("sale"));
@@ -513,8 +528,8 @@ public class SaleManager {
                   sale.put("folderId", "15932309040");
               }
             }
-            
-            //creating a final JSON object
+
+            //filling a final JSON object
             jsonObject.put("sale", sale);
 
           } catch (Exception e) {
