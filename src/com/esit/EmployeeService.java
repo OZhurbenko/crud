@@ -43,8 +43,8 @@ public class EmployeeService {
       @Path("/updateEmployee/{id}")
       @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
       public Response updateInstallation(@PathParam("id") int id, MultivaluedMap<String, String> formParams) throws NamingException {
-          EmployeeManager employee = new EmployeeManager();
-          int result = employee.update(id, formParams);
+          EmployeeManager employee = new EmployeeManager(formParams);
+          int result = employee.update(id);
 
           if(result >= 0) {
               return Response.status(200).build();
