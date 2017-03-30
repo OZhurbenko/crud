@@ -10,49 +10,49 @@ import javax.sql.DataSource;
 
 
 public class ConnectionManager {
-    DataSource datasource;
-    Connection connect;
-    Statement statement;
-    ResultSet resultSet;
-    int result;
+  DataSource datasource;
+  Connection connect;
+  Statement statement;
+  ResultSet resultSet;
+  int result;
 
-    public ConnectionManager() {
-        System.out.println("ConnectionManager: establishing a db connection");
+  public ConnectionManager() {
+    System.out.println("ConnectionManager: establishing a db connection");
 
-        this.statement = null;
-        this.resultSet = null;
-        this.result = 0;
+    this.statement = null;
+    this.resultSet = null;
+    this.result = 0;
 
-        // Get the context and create a connection
-        Context initCtx;
-        Context envCtx;
-        try {
-            initCtx = new InitialContext();
-            envCtx = (Context) initCtx.lookup("java:comp/env");
-            this.datasource = (DataSource)envCtx.lookup("jdbc/esit");
-            this.connect = this.datasource.getConnection();
-        } catch (NamingException | SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    // Get the context and create a connection
+    Context initCtx;
+    Context envCtx;
+    try {
+      initCtx = new InitialContext();
+      envCtx = (Context) initCtx.lookup("java:comp/env");
+      this.datasource = (DataSource)envCtx.lookup("jdbc/esit");
+      this.connect = this.datasource.getConnection();
+    } catch (NamingException | SQLException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
     }
+  }
 
-    public Connection getDBConnection() {
-        return this.connect;
-    }
+  public Connection getDBConnection() {
+    return this.connect;
+  }
 
-    public void closeConnection(){
-        try {
-            if(statement != null) {
-            	System.out.println("ConnectionManager: Closing the Statement");
-                statement.close();
-            }
-            if(connect != null) {
-            	System.out.println("ConnectionManager: Closing the Connection");
-                connect.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+  public void closeConnection(){
+    try {
+      if(statement != null) {
+        System.out.println("ConnectionManager: Closing the Statement");
+        statement.close();
+      }
+      if(connect != null) {
+        System.out.println("ConnectionManager: Closing the Connection");
+        connect.close();
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
     }
+  }
 }
