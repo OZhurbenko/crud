@@ -444,7 +444,7 @@ public class InstallationManager {
         + "Address.street, Address.unit, Address.city, Address.province, Address.postalCode, "
         + "Customer.enbridgeNum, Customer.email, Customer.homePhone, Customer.cellPhone, "
         + "Property.sqFootage , Property.bathrooms , Property.residents , Property.hasPool, "
-        + "Installation.installationDateTime, Installation.status, Installation.notes "
+        + "Installation.installationDateTime, Installation.status, Installation.notes, Installation.envelopeId "
         + "FROM Installation "
         + "JOIN Sale ON Installation.sale = Sale.saleId "
         + "JOIN Employee ON Installation.installer = Employee.employeeId "
@@ -494,6 +494,7 @@ public class InstallationManager {
         installation.put("hasPool", resultSet.getString("hasPool"));
         installation.put("installationDateTime", resultSet.getString("installationDateTime"));
         installation.put("notes", resultSet.getString("notes"));
+        installation.put("envelopeId", resultSet.getString("envelopeId"));
 
         //creating a final JSON object
         jsonObject.put("installation", installation);
